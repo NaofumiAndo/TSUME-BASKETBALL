@@ -26,8 +26,9 @@ const App: React.FC = () => {
 
   // History stack to support Undo
   const [history, setHistory] = useState<Partial<GameState>[]>([]);
+  const [undoUsed, setUndoUsed] = useState(false); // Track if undo has been used this turn
   const [showStrategySuggestions, setShowStrategySuggestions] = useState(true);
-  
+
   const [rankings, setRankings] = useState<Ranking[]>([]);
   const [playerName, setPlayerName] = useState('');
   const timerRef = useRef<number | null>(null);
@@ -99,7 +100,7 @@ const App: React.FC = () => {
           setGameState(prev => ({
             ...prev,
             status: 'lost',
-            message: `STUCK! Shot: ${shotResult.reason || 'Blocked'}. No pass lanes available.`,
+            message: 'LOCKED UP! GAME OVER',
             showNameInput: true
           }));
         }
@@ -123,9 +124,10 @@ const App: React.FC = () => {
   };
 
   const handleUndo = () => {
-    if (history.length === 0) return;
+    if (history.length === 0 || undoUsed) return;
     const previous = history[history.length - 1];
     setHistory(prev => prev.slice(0, -1));
+    setUndoUsed(true); // Mark undo as used
     setGameState(prev => ({
       ...prev,
       ...previous
@@ -135,6 +137,7 @@ const App: React.FC = () => {
   const startGame = (mode: GameMode) => {
     const initialPlayers = generateTacticalScenario();
     setHistory([]);
+    setUndoUsed(false); // Reset undo for new game
     setGameState({
       ...gameState,
       players: initialPlayers,
@@ -205,6 +208,7 @@ const App: React.FC = () => {
   const startNextPossession = (prevScore: number, prevStreak: number) => {
     const initialPlayers = generateTacticalScenario();
     setHistory([]);
+    setUndoUsed(false); // Reset undo for new possession
     setGameState(prev => ({
       ...prev,
       players: initialPlayers,
@@ -327,6 +331,7 @@ const App: React.FC = () => {
       return;
     }
     const playersAfterAI = aiOptimalWall(offensePlayers);
+    setUndoUsed(false); // Reset undo for new turn after AI reaction
     setGameState(prev => ({
       ...prev,
       players: playersAfterAI,
@@ -577,12 +582,12 @@ const App: React.FC = () => {
             </div>
 
             <div className="flex gap-2 mt-2">
-              <button 
-                onClick={handleUndo} 
-                disabled={history.length === 0 || gameState.status !== 'playing'} 
-                className={`w-full font-black py-3 rounded-lg uppercase text-[10px] flex items-center justify-center gap-2 transition-colors border ${history.length === 0 || gameState.status !== 'playing' ? 'bg-zinc-900 border-zinc-800 text-zinc-700' : 'bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700 shadow-md'}`}
+              <button
+                onClick={handleUndo}
+                disabled={history.length === 0 || gameState.status !== 'playing' || undoUsed}
+                className={`w-full font-black py-3 rounded-lg uppercase text-[10px] flex items-center justify-center gap-2 transition-colors border ${history.length === 0 || gameState.status !== 'playing' || undoUsed ? 'bg-zinc-900 border-zinc-800 text-zinc-700' : 'bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700 shadow-md'}`}
               >
-                <i className="fa-solid fa-rotate-left"></i> Undo Step
+                <i className="fa-solid fa-rotate-left"></i> Undo {undoUsed ? '(Used)' : 'Step'}
               </button>
             </div>
           </>
