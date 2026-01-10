@@ -257,18 +257,20 @@ export const getStrategyHighlights = (players: Player[], strategy: StrategyType)
 export const canScore = (player: Player, players: Player[]): { success: boolean; reason?: string; pts?: number; type?: string } => {
   if (!player.hasBall) return { success: false, reason: "No ball", pts: 0, type: "" };
   const dist = getDistance(player.pos, BASKET_POS);
-  const is3pt = isThreePointArea(player.pos);
-  
+  const isOnArc = isPartOfThreePointArc(player.pos);
+
   const defenders = players.filter(p => p.team === 'defense');
   const adjacentDefenders = defenders.filter(d => getDistance(player.pos, d.pos) <= 1);
 
-  if (is3pt) {
+  // 3PT shots ONLY allowed from the arc line
+  if (isOnArc) {
     if (adjacentDefenders.length > 0) {
       return { success: false, reason: "Contested 3PT shot!", pts: 0, type: "" };
     }
     return { success: true, pts: 3, type: "3-Pointer" };
   }
 
+  // Close range shots (layup/dunk)
   if (dist <= 2) {
     const basketDefender = defenders.find(d => isPosEqual(d.pos, BASKET_POS) || isAdjacent(d.pos, BASKET_POS));
     if (basketDefender) {
@@ -277,6 +279,7 @@ export const canScore = (player: Player, players: Player[]): { success: boolean;
     return { success: true, pts: 2, type: dist === 1 ? "Slam Dunk" : "Layup" };
   }
 
+  // Mid-range shots (inside the arc) require no adjacent defenders
   if (adjacentDefenders.length > 0) {
      return { success: false, reason: "Mid-range contested!", pts: 0, type: "" };
   }

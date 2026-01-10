@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Player, Position, GameState, StrategyType, GameMode, Ranking } from './types';
-import { INITIAL_SCENARIOS } from './constants';
+import { INITIAL_SCENARIOS, BASKET_POS } from './constants';
 import { isValidMove, aiOptimalWall, canScore, getPlayerAt, canPassToTeammate, getStrategyHighlights, isPosEqual, generateTacticalScenario } from './utils/gameLogic';
 import Board from './components/Board';
 
@@ -276,6 +276,22 @@ const App: React.FC = () => {
       } else if (activePlayer && activePlayer.id === ballCarrier.id && !clickedPlayer && isValidMove(activePlayer, pos, gameState.players)) {
         saveToHistory();
         const nextPlayers = gameState.players.map(p => p.id === activePlayer.id ? { ...p, pos } : p);
+
+        // Check if ball carrier moved to basket position - automatic dunk!
+        if (isPosEqual(pos, BASKET_POS)) {
+          const result = canScore({ ...activePlayer, pos }, nextPlayers);
+          if (result.success) {
+            const newScore = gameState.score + (result.pts || 0);
+            const newStreak = gameState.streak + 1;
+            const newHigh = Math.max(newScore, gameState.highScore);
+            localStorage.setItem('tsume_high_score', newHigh.toString());
+
+            setGameState(prev => ({ ...prev, players: nextPlayers, score: newScore, streak: newStreak, highScore: newHigh, message: `AUTOMATIC DUNK! +${result.pts}. Unstoppable!` }));
+            setTimeout(() => startNextPossession(newScore, newStreak), 1200);
+            return;
+          }
+        }
+
         setGameState(prev => ({
           ...prev,
           players: nextPlayers,
@@ -289,12 +305,13 @@ const App: React.FC = () => {
       const ballCarrier = gameState.players.find(p => p.hasBall)!;
       if (clickedPlayer && clickedPlayer.team === 'offense' && clickedPlayer.id !== ballCarrier.id) {
         if (canPassToTeammate(ballCarrier, clickedPlayer, gameState.players)) {
-          saveToHistory();
           const nextPlayers = gameState.players.map(p => {
             if (p.id === ballCarrier.id) return { ...p, hasBall: false };
             if (p.id === clickedPlayer.id) return { ...p, hasBall: true };
             return p;
           });
+          // Clear history after pass - can't undo past this point
+          setHistory([]);
           triggerAiReaction(nextPlayers);
         } else {
           setGameState(prev => ({ ...prev, message: "Pass lane denied by defense!" }));
@@ -583,11 +600,13 @@ const App: React.FC = () => {
                 <div className="space-y-2 text-[9px] font-bold text-zinc-400 leading-relaxed uppercase">
                   <p><span className="text-white">The Open Shot Rule:</span> You can only score if you are <span className="text-white">NOT CONTESTED</span>. A shot is contested if a defender is exactly <span className="text-orange-400">1 square away</span> (adjacent).</p>
                   <ul className="list-disc pl-4 space-y-1">
-                    <li><span className="text-white">3PT:</span> Behind arc + NO adjacent defenders.</li>
+                    <li><span className="text-white">3PT:</span> MUST be <span className="text-orange-400">ON THE WHITE ARC LINE</span> + NO adjacent defenders.</li>
                     <li><span className="text-white">Mid-Range:</span> Inside arc + NO adjacent defenders.</li>
-                    <li><span className="text-white">Rim Action:</span> Square (5, 2) and adjacent squares must be <span className="text-red-500">EMPTY</span> of defenders to score a layup/dunk.</li>
+                    <li><span className="text-white">Automatic Dunk:</span> Move ball-carrier <span className="text-orange-400">INTO THE BASKET</span> to instantly score a dunk (no shot button needed)!</li>
+                    <li><span className="text-white">Layup:</span> Adjacent to basket + rim area must be <span className="text-red-500">EMPTY</span> of defenders.</li>
                   </ul>
                   <p className="mt-2"><span className="text-white">How to Screen:</span> To create space, place an <span className="text-white">off-ball support player</span> directly next to a defender (horizontally or vertically). Screened defenders are <span className="text-white">FROZEN</span> and cannot move for one turn.</p>
+                  <p className="mt-2"><span className="text-white">Undo Limit:</span> You can only undo actions <span className="text-orange-400">within the current phase</span>. After making a pass, you CANNOT undo decisions before that pass.</p>
                 </div>
               </section>
 
