@@ -33,9 +33,35 @@ const App: React.FC = () => {
   const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    const savedRankings = localStorage.getItem('tsume_rankings');
-    if (savedRankings) setRankings(JSON.parse(savedRankings));
-    
+    // Fetch global rankings from database
+    const fetchRankings = async () => {
+      try {
+        const response = await fetch('/api/rankings');
+        if (response.ok) {
+          const data = await response.json();
+          const allRankings = [
+            ...(data['streak-attack'] || []).map((r: any) => typeof r === 'string' ? JSON.parse(r) : r),
+            ...(data['time-attack'] || []).map((r: any) => typeof r === 'string' ? JSON.parse(r) : r)
+          ];
+          setRankings(allRankings);
+
+          // Also save to localStorage as backup
+          localStorage.setItem('tsume_rankings', JSON.stringify(allRankings));
+        } else {
+          // Fallback to localStorage if API fails
+          const savedRankings = localStorage.getItem('tsume_rankings');
+          if (savedRankings) setRankings(JSON.parse(savedRankings));
+        }
+      } catch (error) {
+        console.error('Failed to fetch rankings:', error);
+        // Fallback to localStorage if API fails
+        const savedRankings = localStorage.getItem('tsume_rankings');
+        if (savedRankings) setRankings(JSON.parse(savedRankings));
+      }
+    };
+
+    fetchRankings();
+
     const savedHigh = localStorage.getItem('tsume_high_score');
     if (savedHigh) setGameState(prev => ({ ...prev, highScore: parseInt(savedHigh) || 0 }));
   }, []);
@@ -127,7 +153,7 @@ const App: React.FC = () => {
     });
   };
 
-  const saveRanking = () => {
+  const saveRanking = async () => {
     if (!playerName.trim()) return;
     const newRanking: Ranking = {
       name: playerName.trim(),
@@ -135,9 +161,43 @@ const App: React.FC = () => {
       mode: gameState.mode,
       date: Date.now()
     };
-    const updated = [...rankings, newRanking].sort((a, b) => b.score - a.score).slice(0, 100);
-    setRankings(updated);
-    localStorage.setItem('tsume_rankings', JSON.stringify(updated));
+
+    try {
+      // Submit to global database
+      const response = await fetch('/api/rankings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newRanking),
+      });
+
+      if (response.ok) {
+        // Fetch updated rankings from database
+        const rankingsResponse = await fetch('/api/rankings');
+        if (rankingsResponse.ok) {
+          const data = await rankingsResponse.json();
+          const allRankings = [
+            ...(data['streak-attack'] || []).map((r: any) => typeof r === 'string' ? JSON.parse(r) : r),
+            ...(data['time-attack'] || []).map((r: any) => typeof r === 'string' ? JSON.parse(r) : r)
+          ];
+          setRankings(allRankings);
+          localStorage.setItem('tsume_rankings', JSON.stringify(allRankings));
+        }
+      } else {
+        // Fallback to localStorage if API fails
+        const updated = [...rankings, newRanking].sort((a, b) => b.score - a.score).slice(0, 100);
+        setRankings(updated);
+        localStorage.setItem('tsume_rankings', JSON.stringify(updated));
+      }
+    } catch (error) {
+      console.error('Failed to save ranking:', error);
+      // Fallback to localStorage if API fails
+      const updated = [...rankings, newRanking].sort((a, b) => b.score - a.score).slice(0, 100);
+      setRankings(updated);
+      localStorage.setItem('tsume_rankings', JSON.stringify(updated));
+    }
+
     setGameState(prev => ({ ...prev, showNameInput: false }));
     setPlayerName('');
   };
