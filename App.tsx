@@ -33,6 +33,10 @@ const App: React.FC = () => {
   const [playerName, setPlayerName] = useState('');
   const timerRef = useRef<number | null>(null);
 
+  // Banner state for scoring and game over
+  const [showBanner, setShowBanner] = useState(false);
+  const [bannerContent, setBannerContent] = useState({ points: 0, type: '', message: '' });
+
   useEffect(() => {
     // Fetch global rankings from database
     const fetchRankings = async () => {
@@ -97,12 +101,19 @@ const App: React.FC = () => {
         );
 
         if (!shotResult.success && !canPass) {
-          setGameState(prev => ({
-            ...prev,
-            status: 'lost',
-            message: 'LOCKED UP! GAME OVER',
-            showNameInput: true
-          }));
+          // Show locked up banner
+          setBannerContent({ points: 0, type: '', message: 'LOCKED UP!' });
+          setShowBanner(true);
+
+          setTimeout(() => {
+            setShowBanner(false);
+            setGameState(prev => ({
+              ...prev,
+              status: 'lost',
+              message: 'LOCKED UP! GAME OVER',
+              showNameInput: true
+            }));
+          }, 1500);
         }
       }
     }
@@ -290,8 +301,15 @@ const App: React.FC = () => {
             const newHigh = Math.max(newScore, gameState.highScore);
             localStorage.setItem('tsume_high_score', newHigh.toString());
 
+            // Show automatic dunk banner
+            setBannerContent({ points: result.pts || 0, type: 'AUTOMATIC DUNK', message: '' });
+            setShowBanner(true);
+
             setGameState(prev => ({ ...prev, players: nextPlayers, score: newScore, streak: newStreak, highScore: newHigh, message: `AUTOMATIC DUNK! +${result.pts}. Unstoppable!` }));
-            setTimeout(() => startNextPossession(newScore, newStreak), 1200);
+            setTimeout(() => {
+              setShowBanner(false);
+              startNextPossession(newScore, newStreak);
+            }, 1200);
             return;
           }
         }
@@ -350,14 +368,21 @@ const App: React.FC = () => {
       const newStreak = gameState.streak + 1;
       const newHigh = Math.max(newScore, gameState.highScore);
       localStorage.setItem('tsume_high_score', newHigh.toString());
-      
+
+      // Show scoring banner
+      setBannerContent({ points: result.pts || 0, type: result.type || '', message: '' });
+      setShowBanner(true);
+
       setGameState(prev => ({ ...prev, score: newScore, streak: newStreak, highScore: newHigh, message: `BUCKET! ${result.type} +${result.pts}.` }));
-      setTimeout(() => startNextPossession(newScore, newStreak), 1200);
+      setTimeout(() => {
+        setShowBanner(false);
+        startNextPossession(newScore, newStreak);
+      }, 1200);
     } else {
       saveToHistory();
-      setGameState(prev => ({ 
-        ...prev, 
-        message: `BLOCKED! ${result.reason || "Shot contested."} Find an open spot or pass!` 
+      setGameState(prev => ({
+        ...prev,
+        message: `BLOCKED! ${result.reason || "Shot contested."} Find an open spot or pass!`
       }));
     }
   };
@@ -501,18 +526,50 @@ const App: React.FC = () => {
               </span>
             </div>
 
-            <Board
-              players={gameState.players}
-              onSquareClick={handleSquareClick}
-              activePlayerId={gameState.activePlayerId}
-              movedPlayerIds={gameState.movedPlayerIds}
-              strategyHighlights={strategyHighlights}
-              passablePlayerIds={passablePlayerIds}
-              validMoves={activeValidMoves}
-              activeStrategy={gameState.activeStrategy}
-              phase={gameState.phase}
-              showStrategySuggestions={showStrategySuggestions}
-            />
+            <div className="relative">
+              <Board
+                players={gameState.players}
+                onSquareClick={handleSquareClick}
+                activePlayerId={gameState.activePlayerId}
+                movedPlayerIds={gameState.movedPlayerIds}
+                strategyHighlights={strategyHighlights}
+                passablePlayerIds={passablePlayerIds}
+                validMoves={activeValidMoves}
+                activeStrategy={gameState.activeStrategy}
+                phase={gameState.phase}
+                showStrategySuggestions={showStrategySuggestions}
+              />
+
+              {/* Score/Game Over Banner */}
+              {showBanner && (
+                <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none">
+                  <div className={`animate-[bounce_0.5s_ease-in-out] ${bannerContent.message === 'LOCKED UP!' ? 'bg-red-600' : 'bg-gradient-to-r from-orange-500 to-yellow-500'} px-8 py-6 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] border-4 ${bannerContent.message === 'LOCKED UP!' ? 'border-red-800' : 'border-yellow-300'}`}>
+                    {bannerContent.message === 'LOCKED UP!' ? (
+                      <div className="text-center">
+                        <div className="text-6xl font-black text-white uppercase tracking-tight drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)] animate-pulse">
+                          🔒 LOCKED UP! 🔒
+                        </div>
+                        <div className="text-2xl font-black text-red-100 uppercase tracking-wider mt-2">
+                          Game Over!
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center">
+                        <div className="text-7xl font-black text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)] animate-pulse">
+                          +{bannerContent.points}
+                        </div>
+                        <div className="text-2xl font-black text-yellow-100 uppercase tracking-wider mt-2">
+                          {bannerContent.type}
+                        </div>
+                        <div className="text-4xl mt-3 animate-bounce">
+                          {bannerContent.points === 3 ? '🏀🔥' : '💥'}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
 
             {gameState.status === 'playing' && (
               <div className="flex flex-col gap-2">
