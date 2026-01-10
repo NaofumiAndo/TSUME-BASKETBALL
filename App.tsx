@@ -603,15 +603,15 @@ const App: React.FC = () => {
               <section>
                 <h3 className="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-1.5 border-b border-zinc-800 pb-0.5">Scoring Requirements</h3>
                 <div className="space-y-2 text-[9px] font-bold text-zinc-400 leading-relaxed uppercase">
-                  <p><span className="text-white">The Open Shot Rule:</span> You can only score if you are <span className="text-white">NOT CONTESTED</span>. A shot is contested if a defender is exactly <span className="text-orange-400">1 square away</span> (adjacent).</p>
+                  <p><span className="text-white">STRICT SCORING ZONES:</span> You can ONLY score from <span className="text-orange-400">TWO ZONES</span> - the arc line or near the basket. <span className="text-red-500">NO MID-RANGE SHOTS!</span></p>
                   <ul className="list-disc pl-4 space-y-1">
-                    <li><span className="text-white">3PT:</span> MUST be <span className="text-orange-400">ON THE WHITE ARC LINE</span> + NO adjacent defenders.</li>
-                    <li><span className="text-white">Mid-Range:</span> Inside arc + NO adjacent defenders.</li>
-                    <li><span className="text-white">Automatic Dunk:</span> Move ball-carrier <span className="text-orange-400">INTO THE BASKET</span> to instantly score a dunk (no shot button needed)!</li>
-                    <li><span className="text-white">Layup:</span> Adjacent to basket + rim area must be <span className="text-red-500">EMPTY</span> of defenders.</li>
+                    <li><span className="text-white">3PT (Arc Only):</span> MUST be <span className="text-orange-400">EXACTLY ON THE WHITE ARC LINE</span> + NO adjacent defenders.</li>
+                    <li><span className="text-white">Automatic Dunk:</span> Move ball-carrier <span className="text-orange-400">INTO THE BASKET</span> to instantly score 2PT!</li>
+                    <li><span className="text-white">Layup (2PT):</span> Within 2 squares of basket + rim area must be <span className="text-red-500">EMPTY</span> of defenders.</li>
+                    <li><span className="text-red-500">Anywhere Else:</span> Shot will be <span className="text-red-500">BLOCKED</span>. Move to arc or attack rim!</li>
                   </ul>
                   <p className="mt-2"><span className="text-white">How to Screen:</span> To create space, place an <span className="text-white">off-ball support player</span> directly next to a defender (horizontally or vertically). Screened defenders are <span className="text-white">FROZEN</span> and cannot move for one turn.</p>
-                  <p className="mt-2"><span className="text-white">Undo Limit:</span> You can only undo actions <span className="text-orange-400">within the current phase</span>. After making a pass, you CANNOT undo decisions before that pass.</p>
+                  <p className="mt-2"><span className="text-white">Undo Limit:</span> You can only undo <span className="text-orange-400">ONE action per turn</span>. Button shows "(Used)" after use.</p>
                 </div>
               </section>
 

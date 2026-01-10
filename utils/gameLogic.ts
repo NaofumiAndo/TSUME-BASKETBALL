@@ -283,7 +283,7 @@ export const canScore = (player: Player, players: Player[]): { success: boolean;
   const defenders = players.filter(p => p.team === 'defense');
   const adjacentDefenders = defenders.filter(d => getDistance(player.pos, d.pos) <= 1);
 
-  // STRICT 3PT RULE: MUST be on the white arc line
+  // STRICT RULE 1: 3PT shots ONLY from white arc line
   if (isOnArc) {
     if (adjacentDefenders.length > 0) {
       return { success: false, reason: "Contested 3PT!", pts: 0, type: "" };
@@ -295,8 +295,7 @@ export const canScore = (player: Player, players: Player[]): { success: boolean;
     return { success: true, pts: 3, type: "3-Pointer" };
   }
 
-  // NOT on arc = Cannot shoot 3PT
-  // Check for close range (layup/dunk at basket)
+  // STRICT RULE 2: 2PT shots ONLY near basket (layup/dunk range)
   if (dist <= 2) {
     const basketDefender = defenders.find(d => isPosEqual(d.pos, BASKET_POS) || isAdjacent(d.pos, BASKET_POS));
     if (basketDefender) {
@@ -305,15 +304,6 @@ export const canScore = (player: Player, players: Player[]): { success: boolean;
     return { success: true, pts: 2, type: dist === 1 ? "Slam Dunk" : "Layup" };
   }
 
-  // Mid-range shot (2PT) - must be uncontested
-  if (adjacentDefenders.length > 0) {
-     return { success: false, reason: "Mid-range contested!", pts: 0, type: "" };
-  }
-
-  // Final check: If somehow trying to shoot from behind arc but not ON arc line
-  if (isThreePointArea(player.pos) && !isOnArc) {
-    return { success: false, reason: "Must be ON the arc line for 3PT!", pts: 0, type: "" };
-  }
-
-  return { success: true, pts: 2, type: "Jump Shot" };
+  // NO OTHER SHOTS ALLOWED - Must be on arc or near basket
+  return { success: false, reason: "Too far! Move to arc or attack the rim!", pts: 0, type: "" };
 };

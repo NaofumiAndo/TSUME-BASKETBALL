@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: Migrate to Vercel with secure API handling\n\n- Add serverless function to proxy Gemini API calls\n- Update frontend to use secure API endpoint\n- Configure Vercel deployment settings\n- Remove exposed API key from client-side code\n- Update Vite config for Vercel hosting\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: Migrate to Vercel with secure API handling\n\n- Add serverless function to proxy Gemini API calls\n- Update frontend to use secure API endpoint\n- Configure Vercel deployment settings\n- Remove exposed API key from client-side code\n- Update Vite config for Vercel hosting\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(npm run build:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: Stricter diagonal passing rules\n\n- Block diagonal adjacent passes if defenders at orthogonal positions\n- Prevent defenders from intercepting diagonal passes\n- All pass types now check for defenders in the path\n\nExample: Pass from \\(3,3\\) to \\(4,4\\) blocked if defender at \\(3,4\\) or \\(4,3\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)"
     ]
   }
 }
