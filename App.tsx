@@ -1,0 +1,561 @@
+
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { Player, Position, GameState, StrategyType, GameMode, Ranking } from './types';
+import { INITIAL_SCENARIOS } from './constants';
+import { isValidMove, aiOptimalWall, canScore, getPlayerAt, canPassToTeammate, getStrategyHighlights, isPosEqual, generateTacticalScenario } from './utils/gameLogic';
+import Board from './components/Board';
+
+const App: React.FC = () => {
+  const [gameState, setGameState] = useState<GameState>({
+    players: JSON.parse(JSON.stringify(INITIAL_SCENARIOS[0].players)),
+    score: 0,
+    streak: 0,
+    highScore: 0,
+    turnCount: 0,
+    maxTurns: 5,
+    status: 'idle',
+    activePlayerId: null,
+    message: 'Welcome to Tsume Basketball.',
+    movedPlayerIds: [],
+    phase: 'menu',
+    activeStrategy: null,
+    mode: 'streak-attack',
+    timeLeft: 60,
+    showNameInput: false
+  });
+
+  // History stack to support Undo
+  const [history, setHistory] = useState<Partial<GameState>[]>([]);
+  const [showStrategySuggestions, setShowStrategySuggestions] = useState(true);
+  
+  const [rankings, setRankings] = useState<Ranking[]>([]);
+  const [playerName, setPlayerName] = useState('');
+  const timerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const savedRankings = localStorage.getItem('tsume_rankings');
+    if (savedRankings) setRankings(JSON.parse(savedRankings));
+    
+    const savedHigh = localStorage.getItem('tsume_high_score');
+    if (savedHigh) setGameState(prev => ({ ...prev, highScore: parseInt(savedHigh) || 0 }));
+  }, []);
+
+  useEffect(() => {
+    if (gameState.status === 'playing' && gameState.mode === 'time-attack') {
+      timerRef.current = window.setInterval(() => {
+        setGameState(prev => {
+          if (prev.timeLeft <= 1) {
+            if (timerRef.current) clearInterval(timerRef.current);
+            return { ...prev, timeLeft: 0, status: 'lost', message: 'TIME EXPIRED!', showNameInput: true };
+          }
+          return { ...prev, timeLeft: prev.timeLeft - 1 };
+        });
+      }, 1000);
+    } else {
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [gameState.status, gameState.mode]);
+
+  // Game over check
+  useEffect(() => {
+    if (gameState.status === 'playing' && (gameState.phase === 'executing' || gameState.phase === 'passing')) {
+      const ballCarrier = gameState.players.find(p => p.hasBall);
+      if (ballCarrier) {
+        const shotResult = canScore(ballCarrier, gameState.players);
+        const canPass = gameState.players.some(p => 
+          p.team === 'offense' && 
+          p.id !== ballCarrier.id && 
+          canPassToTeammate(ballCarrier, p, gameState.players)
+        );
+
+        if (!shotResult.success && !canPass) {
+          setGameState(prev => ({
+            ...prev,
+            status: 'lost',
+            message: `STUCK! Shot: ${shotResult.reason || 'Blocked'}. No pass lanes available.`,
+            showNameInput: true
+          }));
+        }
+      }
+    }
+  }, [gameState.phase, gameState.players, gameState.status]);
+
+  const saveToHistory = () => {
+    setHistory(prev => [
+      ...prev,
+      {
+        players: JSON.parse(JSON.stringify(gameState.players)),
+        phase: gameState.phase,
+        movedPlayerIds: [...gameState.movedPlayerIds],
+        activePlayerId: gameState.activePlayerId,
+        activeStrategy: gameState.activeStrategy,
+        turnCount: gameState.turnCount,
+        message: gameState.message
+      }
+    ]);
+  };
+
+  const handleUndo = () => {
+    if (history.length === 0) return;
+    const previous = history[history.length - 1];
+    setHistory(prev => prev.slice(0, -1));
+    setGameState(prev => ({
+      ...prev,
+      ...previous
+    }));
+  };
+
+  const startGame = (mode: GameMode) => {
+    const initialPlayers = generateTacticalScenario();
+    setHistory([]);
+    setGameState({
+      ...gameState,
+      players: initialPlayers,
+      score: 0,
+      streak: 0,
+      turnCount: 0,
+      status: 'playing',
+      phase: 'off-ball',
+      mode,
+      timeLeft: mode === 'time-attack' ? 60 : 0,
+      message: mode === 'time-attack' ? 'Go! Score as much as possible in 1 minute!' : 'Execute precisely. One mistake ends the streak.',
+      showNameInput: false,
+      movedPlayerIds: [],
+      activeStrategy: null,
+      activePlayerId: null
+    });
+  };
+
+  const saveRanking = () => {
+    if (!playerName.trim()) return;
+    const newRanking: Ranking = {
+      name: playerName.trim(),
+      score: gameState.score,
+      mode: gameState.mode,
+      date: Date.now()
+    };
+    const updated = [...rankings, newRanking].sort((a, b) => b.score - a.score).slice(0, 100);
+    setRankings(updated);
+    localStorage.setItem('tsume_rankings', JSON.stringify(updated));
+    setGameState(prev => ({ ...prev, showNameInput: false }));
+    setPlayerName('');
+  };
+
+  const startNextPossession = (prevScore: number, prevStreak: number) => {
+    const initialPlayers = generateTacticalScenario();
+    setHistory([]);
+    setGameState(prev => ({
+      ...prev,
+      players: initialPlayers,
+      score: prevScore,
+      streak: prevStreak,
+      turnCount: 0,
+      activePlayerId: null,
+      message: prev.mode === 'time-attack' ? 'Bucket! Keep moving!' : `Streak: ${prevStreak}. Keep it alive!`,
+      movedPlayerIds: [],
+      phase: 'off-ball',
+      activeStrategy: null
+    }));
+  };
+
+  const handleSquareClick = (pos: Position) => {
+    if (gameState.status !== 'playing') return;
+    const clickedPlayer = getPlayerAt(pos, gameState.players);
+    const activePlayer = gameState.players.find(p => p.id === gameState.activePlayerId);
+
+    if (gameState.phase === 'off-ball') {
+      if (clickedPlayer && clickedPlayer.team === 'offense') {
+        if (clickedPlayer.hasBall) {
+          setGameState(prev => ({ ...prev, message: "Move support players first!" }));
+          return;
+        }
+        if (gameState.movedPlayerIds.includes(clickedPlayer.id)) return;
+        
+        if (activePlayer && clickedPlayer.id === activePlayer.id) {
+          saveToHistory();
+          const nextMoved = [...gameState.movedPlayerIds, activePlayer.id];
+          setGameState(prev => ({
+            ...prev,
+            movedPlayerIds: nextMoved,
+            activePlayerId: null,
+            message: nextMoved.length >= 4 ? "Off-ball set. Choose Ball-Carrier movement." : `Support moves: ${nextMoved.length}/4`,
+            phase: nextMoved.length >= 4 ? 'ball-carrier' : 'off-ball'
+          }));
+          return;
+        }
+        setGameState(prev => ({ ...prev, activePlayerId: clickedPlayer.id }));
+      } else if (activePlayer && !clickedPlayer && isValidMove(activePlayer, pos, gameState.players)) {
+        saveToHistory();
+        const nextPlayers = gameState.players.map(p => p.id === activePlayer.id ? { ...p, pos } : p);
+        const nextMoved = [...gameState.movedPlayerIds, activePlayer.id];
+        setGameState(prev => ({
+          ...prev,
+          players: nextPlayers,
+          movedPlayerIds: nextMoved,
+          activePlayerId: null,
+          message: nextMoved.length >= 4 ? "Off-ball set. Choose Ball-Carrier movement." : `Support moves: ${nextMoved.length}/4`,
+          phase: nextMoved.length >= 4 ? 'ball-carrier' : 'off-ball'
+        }));
+      }
+    }
+    else if (gameState.phase === 'ball-carrier') {
+      const ballCarrier = gameState.players.find(p => p.hasBall)!;
+      if (clickedPlayer && clickedPlayer.id === ballCarrier.id) {
+        if (activePlayer && activePlayer.id === ballCarrier.id) {
+          saveToHistory();
+          setGameState(prev => ({
+            ...prev,
+            phase: 'executing',
+            activePlayerId: null,
+            message: "Action Phase: Finalize with a Shot or Pass."
+          }));
+          return;
+        }
+        setGameState(prev => ({ ...prev, activePlayerId: clickedPlayer.id }));
+      } else if (activePlayer && activePlayer.id === ballCarrier.id && !clickedPlayer && isValidMove(activePlayer, pos, gameState.players)) {
+        saveToHistory();
+        const nextPlayers = gameState.players.map(p => p.id === activePlayer.id ? { ...p, pos } : p);
+        setGameState(prev => ({
+          ...prev,
+          players: nextPlayers,
+          phase: 'executing',
+          activePlayerId: null,
+          message: "Action Phase: Finalize with a Shot or Pass."
+        }));
+      }
+    }
+    else if (gameState.phase === 'passing') {
+      const ballCarrier = gameState.players.find(p => p.hasBall)!;
+      if (clickedPlayer && clickedPlayer.team === 'offense' && clickedPlayer.id !== ballCarrier.id) {
+        if (canPassToTeammate(ballCarrier, clickedPlayer, gameState.players)) {
+          saveToHistory();
+          const nextPlayers = gameState.players.map(p => {
+            if (p.id === ballCarrier.id) return { ...p, hasBall: false };
+            if (p.id === clickedPlayer.id) return { ...p, hasBall: true };
+            return p;
+          });
+          triggerAiReaction(nextPlayers);
+        } else {
+          setGameState(prev => ({ ...prev, message: "Pass lane denied by defense!" }));
+        }
+      }
+    }
+  };
+
+  const triggerAiReaction = (offensePlayers: Player[]) => {
+    const nextTurnCount = gameState.turnCount + 1;
+    if (nextTurnCount >= gameState.maxTurns) {
+      setGameState(prev => ({ ...prev, status: 'lost', message: "STREAK ENDED: Violation!", showNameInput: true }));
+      return;
+    }
+    const playersAfterAI = aiOptimalWall(offensePlayers);
+    setGameState(prev => ({
+      ...prev,
+      players: playersAfterAI,
+      turnCount: nextTurnCount,
+      phase: 'off-ball',
+      movedPlayerIds: [],
+      message: `Turn ${nextTurnCount + 1}: Move supports.`
+    }));
+  };
+
+  const handleShoot = () => {
+    const ballCarrier = gameState.players.find(p => p.hasBall)!;
+    const result = canScore(ballCarrier, gameState.players);
+    if (result.success) {
+      const newScore = gameState.score + (result.pts || 0);
+      const newStreak = gameState.streak + 1;
+      const newHigh = Math.max(newScore, gameState.highScore);
+      localStorage.setItem('tsume_high_score', newHigh.toString());
+      
+      setGameState(prev => ({ ...prev, score: newScore, streak: newStreak, highScore: newHigh, message: `BUCKET! ${result.type} +${result.pts}.` }));
+      setTimeout(() => startNextPossession(newScore, newStreak), 1200);
+    } else {
+      saveToHistory();
+      setGameState(prev => ({ 
+        ...prev, 
+        message: `BLOCKED! ${result.reason || "Shot contested."} Find an open spot or pass!` 
+      }));
+    }
+  };
+
+  const selectStrategy = (strat: StrategyType) => {
+    saveToHistory();
+    setGameState(prev => ({ ...prev, activeStrategy: strat, message: `Strategy: ${strat?.replace('-', ' ')}.` }));
+  };
+
+  const strategyHighlights = getStrategyHighlights(gameState.players, gameState.activeStrategy);
+
+  const passablePlayerIds = useMemo(() => {
+    if (gameState.phase !== 'passing') return [];
+    const ballCarrier = gameState.players.find(p => p.hasBall);
+    if (!ballCarrier) return [];
+    return gameState.players
+      .filter(p => p.team === 'offense' && p.id !== ballCarrier.id && canPassToTeammate(ballCarrier, p, gameState.players))
+      .map(p => p.id);
+  }, [gameState.phase, gameState.players]);
+
+  const activeValidMoves = useMemo(() => {
+    if (!gameState.activePlayerId) return [];
+    const player = gameState.players.find(p => p.id === gameState.activePlayerId);
+    if (!player) return [];
+    
+    const moves: Position[] = [];
+    moves.push(player.pos);
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        if (dx === 0 && dy === 0) continue;
+        const target = { x: player.pos.x + dx, y: player.pos.y + dy };
+        if (isValidMove(player, target, gameState.players)) {
+          moves.push(target);
+        }
+      }
+    }
+    return moves;
+  }, [gameState.activePlayerId, gameState.players]);
+
+  const streakRankings = rankings.filter(r => r.mode === 'streak-attack').sort((a, b) => b.score - a.score);
+  const timeRankings = rankings.filter(r => r.mode === 'time-attack').sort((a, b) => b.score - a.score);
+
+  const formatDate = (ts: number) => {
+    const date = new Date(ts);
+    const m = (date.getMonth() + 1).toString().padStart(2, '0');
+    const d = date.getDate().toString().padStart(2, '0');
+    const h = date.getHours().toString().padStart(2, '0');
+    const min = date.getMinutes().toString().padStart(2, '0');
+    return `${m}/${d} ${h}:${min}`;
+  };
+
+  const RankingTable = ({ title, data, icon }: { title: string, data: Ranking[], icon: string }) => (
+    <div className="flex-1 min-w-[300px] mb-6">
+      <h3 className="text-[10px] font-black text-white uppercase tracking-widest mb-2 flex items-center gap-2 px-2">
+        <i className={`fa-solid ${icon} text-orange-500`}></i> {title}
+      </h3>
+      <div className="bg-zinc-900 rounded-2xl border border-zinc-800 overflow-hidden shadow-xl">
+        <div className="max-h-64 overflow-y-auto scrollbar-hide">
+          <table className="w-full text-left text-[9px] font-bold border-collapse">
+            <thead className="bg-black/50 sticky top-0 text-zinc-500 uppercase tracking-widest border-b border-zinc-800">
+              <tr>
+                <th className="p-3 w-10 text-center">POS</th>
+                <th className="p-3">PLAYER</th>
+                <th className="p-3 text-right">DATE</th>
+                <th className="p-3 text-right">SCORE</th>
+              </tr>
+            </thead>
+            <tbody className="text-zinc-300">
+              {data.length === 0 ? (
+                <tr><td colSpan={4} className="p-10 text-center text-zinc-600 italic">No records yet.</td></tr>
+              ) : (
+                data.map((r, i) => (
+                  <tr key={i} className={`border-b border-zinc-800/30 ${i < 3 ? 'bg-orange-500/5' : ''}`}>
+                    <td className="p-3 text-center text-zinc-500">{i + 1}</td>
+                    <td className="p-3 text-white uppercase truncate max-w-[100px]">{r.name}</td>
+                    <td className="p-3 text-right text-[8px] text-zinc-500 font-normal">{formatDate(r.date)}</td>
+                    <td className="p-3 text-right font-black text-orange-500">{r.score}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
+  const getPhaseText = (phase: string) => {
+    switch (phase) {
+      case 'off-ball': return 'Support Movement';
+      case 'ball-carrier': return 'Ball-Carrier Action';
+      case 'executing': return 'Finish Choice';
+      case 'passing': return 'Passing Lane';
+      default: return '';
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col items-center bg-zinc-950 p-3 md:p-6 selection:bg-orange-500 overflow-x-hidden pb-10">
+      <header className="w-full max-w-lg mb-4 text-center">
+        <h1 className="text-xl md:text-2xl font-black text-orange-500 tracking-tighter italic uppercase">Tsume Basketball</h1>
+        <div className="flex justify-center gap-4 text-[10px] font-bold uppercase text-zinc-500 tracking-widest mt-1">
+          <span>Streak: <span className="text-white">{gameState.streak}</span></span>
+          <span>Score: <span className="text-white">{gameState.score}</span></span>
+          {gameState.mode === 'time-attack' && <span>Time: <span className="text-red-500">{gameState.timeLeft}s</span></span>}
+        </div>
+      </header>
+
+      <div className="w-full max-w-lg flex flex-col gap-3">
+        {gameState.phase === 'menu' ? (
+          <div className="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 shadow-2xl flex flex-col gap-4">
+            <h2 className="text-sm font-black text-white uppercase tracking-widest text-center">Select Game Mode</h2>
+            <button onClick={() => startGame('streak-attack')} className="bg-orange-600 hover:bg-orange-500 text-white font-black py-4 rounded-2xl uppercase text-xs tracking-widest transition-all shadow-[0_4px_15px_rgba(234,88,12,0.3)]">Score Attack (Streak)</button>
+            <button onClick={() => startGame('time-attack')} className="bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-2xl uppercase text-xs tracking-widest transition-all shadow-[0_4px_15px_rgba(37,99,235,0.3)]">Time Attack (1 Min)</button>
+            <p className="text-[9px] text-zinc-500 text-center leading-relaxed font-bold">Streak mode: One miss ends the game.<br/>Time Attack: Score as many as possible within 60s.</p>
+          </div>
+        ) : (
+          <>
+            <div className="flex gap-2 w-full h-fit">
+              <div className="flex-1 bg-zinc-900 p-3 rounded-2xl border border-zinc-800 flex flex-col justify-center">
+                <div className="flex justify-between items-center mb-1">
+                  <h2 className="text-[8px] font-black text-white uppercase">Turn Progression</h2>
+                  <span className="text-[8px] text-orange-500 font-black">{gameState.turnCount + 1}/5</span>
+                </div>
+                <div className="flex gap-0.5">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className={`h-1.5 flex-1 rounded-full ${i < gameState.turnCount ? 'bg-zinc-800' : 'bg-red-600 shadow-[0_0_8px_rgba(220,38,38,0.4)]'}`} />
+                  ))}
+                </div>
+              </div>
+              <div className="flex-[2] bg-zinc-900 p-3 rounded-2xl border border-zinc-800 flex flex-col justify-center min-h-[60px] relative">
+                <div className={`text-[10px] font-bold leading-tight mt-1 ${gameState.status === 'lost' ? 'text-red-400' : 'text-zinc-300'}`}>
+                  {gameState.message}
+                </div>
+              </div>
+            </div>
+
+            <div className="w-full flex justify-center">
+              <span className="bg-zinc-800 px-3 py-1 rounded-full border border-zinc-700 text-[9px] font-black text-orange-400 uppercase tracking-widest shadow-lg">
+                Phase: {getPhaseText(gameState.phase)}
+              </span>
+            </div>
+
+            <Board
+              players={gameState.players}
+              onSquareClick={handleSquareClick}
+              activePlayerId={gameState.activePlayerId}
+              movedPlayerIds={gameState.movedPlayerIds}
+              strategyHighlights={strategyHighlights}
+              passablePlayerIds={passablePlayerIds}
+              validMoves={activeValidMoves}
+              activeStrategy={gameState.activeStrategy}
+              phase={gameState.phase}
+              showStrategySuggestions={showStrategySuggestions}
+            />
+
+            {gameState.status === 'playing' && (
+              <div className="flex flex-col gap-2">
+                <div className="grid grid-cols-3 gap-2">
+                  <button onClick={() => selectStrategy('pick-and-roll')} className={`py-2 rounded-xl text-[8px] font-black uppercase transition-all border ${gameState.activeStrategy === 'pick-and-roll' ? 'bg-orange-600 border-orange-400 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}>Pick & Roll</button>
+                  <button onClick={() => selectStrategy('floor-spacing')} className={`py-2 rounded-xl text-[8px] font-black uppercase transition-all border ${gameState.activeStrategy === 'floor-spacing' ? 'bg-orange-600 border-orange-400 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}>Spacing</button>
+                  <button onClick={() => selectStrategy('backdoor-cut')} className={`py-2 rounded-xl text-[8px] font-black uppercase transition-all border ${gameState.activeStrategy === 'backdoor-cut' ? 'bg-orange-600 border-orange-400 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}>Backdoor</button>
+                </div>
+                <div className="flex justify-end">
+                   <button 
+                    onClick={() => setShowStrategySuggestions(!showStrategySuggestions)} 
+                    className={`text-[8px] font-black uppercase flex items-center gap-1.5 px-3 py-1 rounded-lg border transition-all ${showStrategySuggestions ? 'text-blue-400 border-blue-900 bg-blue-950/30' : 'text-zinc-600 border-zinc-800 bg-zinc-900'}`}
+                  >
+                    <i className={`fa-solid ${showStrategySuggestions ? 'fa-eye' : 'fa-eye-slash'}`}></i>
+                    Visual Guides: {showStrategySuggestions ? 'ON' : 'OFF'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-2 w-full">
+              {gameState.phase === 'off-ball' && gameState.status === 'playing' && (
+                <button 
+                  onClick={() => { saveToHistory(); setGameState(p => ({ ...p, phase: 'ball-carrier' })); }} 
+                  className="w-full bg-blue-600 text-white font-black py-4 rounded-xl uppercase text-xs tracking-widest border-2 border-blue-400 hover:bg-blue-500 transition-all shadow-[0_4px_20px_rgba(37,99,235,0.4)] flex items-center justify-center gap-2 group"
+                >
+                  <i className="fa-solid fa-check-double text-blue-200 group-hover:scale-110 transition-transform"></i>
+                  Finalize Off-Ball Movement
+                </button>
+              )}
+              {gameState.phase === 'ball-carrier' && gameState.status === 'playing' && (
+                <button 
+                  onClick={() => { saveToHistory(); setGameState(p => ({ ...p, phase: 'executing', activePlayerId: null })); }} 
+                  className="w-full bg-emerald-600 text-white font-black py-4 rounded-xl uppercase text-xs tracking-widest border-2 border-emerald-400 hover:bg-emerald-500 transition-all shadow-[0_4px_20px_rgba(16,185,129,0.4)] flex items-center justify-center gap-2 group"
+                >
+                  <i className="fa-solid fa-basketball text-emerald-100 group-hover:animate-bounce"></i>
+                  Ready to Execute Action
+                </button>
+              )}
+              {gameState.phase === 'executing' && gameState.status === 'playing' && (
+                <div className="flex gap-2">
+                  <button onClick={handleShoot} className="flex-1 bg-gradient-to-r from-orange-500 to-red-600 text-white font-black py-3 rounded-xl uppercase text-sm shadow-lg hover:brightness-110 transition-all">Shoot</button>
+                  <button onClick={() => { saveToHistory(); setGameState(p => ({ ...p, phase: 'passing' })); }} className="flex-1 bg-zinc-800 text-white font-black py-3 rounded-xl uppercase text-sm border border-zinc-700 hover:bg-zinc-700 transition-all">Pass</button>
+                </div>
+              )}
+              {gameState.phase === 'passing' && (
+                <div className="text-center py-2 bg-zinc-900 border border-yellow-500/30 rounded-xl animate-pulse text-yellow-500 font-black uppercase text-[10px]">Choose Target for Pass</div>
+              )}
+
+              {gameState.showNameInput && (
+                <div className="bg-zinc-900 p-4 rounded-2xl border border-zinc-700 shadow-xl flex flex-col gap-3">
+                  <h3 className="text-white text-[10px] font-black uppercase text-center">New Score: {gameState.score}!</h3>
+                  <input 
+                    type="text" 
+                    placeholder="ENTER NAME" 
+                    value={playerName} 
+                    onChange={(e) => setPlayerName(e.target.value.toUpperCase().slice(0, 10))}
+                    className="bg-black border border-zinc-700 rounded-lg p-2 text-white text-center text-xs font-black outline-none focus:border-orange-500"
+                  />
+                  <button onClick={saveRanking} className="bg-emerald-600 text-white font-black py-2 rounded-lg uppercase text-[10px]">Submit Record</button>
+                </div>
+              )}
+
+              {gameState.status === 'lost' && !gameState.showNameInput && (
+                <button onClick={() => setGameState(prev => ({ ...prev, phase: 'menu', status: 'idle' }))} className="w-full bg-orange-600 text-white font-black py-3 rounded-xl uppercase text-sm shadow-xl animate-pulse">Back to Main Menu</button>
+              )}
+            </div>
+
+            <div className="flex gap-2 mt-2">
+              <button 
+                onClick={handleUndo} 
+                disabled={history.length === 0 || gameState.status !== 'playing'} 
+                className={`w-full font-black py-3 rounded-lg uppercase text-[10px] flex items-center justify-center gap-2 transition-colors border ${history.length === 0 || gameState.status !== 'playing' ? 'bg-zinc-900 border-zinc-800 text-zinc-700' : 'bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700 shadow-md'}`}
+              >
+                <i className="fa-solid fa-rotate-left"></i> Undo Step
+              </button>
+            </div>
+          </>
+        )}
+
+        <div className="mt-6 w-full">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 mb-4 shadow-lg">
+            <h2 className="text-[10px] font-black text-white uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+              <i className="fa-solid fa-circle-info text-orange-500"></i> Rules
+            </h2>
+            
+            <div className="space-y-4">
+              <section>
+                <h3 className="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-1.5 border-b border-zinc-800 pb-0.5">Scoring Requirements</h3>
+                <div className="space-y-2 text-[9px] font-bold text-zinc-400 leading-relaxed uppercase">
+                  <p><span className="text-white">The Open Shot Rule:</span> You can only score if you are <span className="text-white">NOT CONTESTED</span>. A shot is contested if a defender is exactly <span className="text-orange-400">1 square away</span> (adjacent).</p>
+                  <ul className="list-disc pl-4 space-y-1">
+                    <li><span className="text-white">3PT:</span> Behind arc + NO adjacent defenders.</li>
+                    <li><span className="text-white">Mid-Range:</span> Inside arc + NO adjacent defenders.</li>
+                    <li><span className="text-white">Rim Action:</span> Square (5, 2) and adjacent squares must be <span className="text-red-500">EMPTY</span> of defenders to score a layup/dunk.</li>
+                  </ul>
+                  <p className="mt-2"><span className="text-white">How to Screen:</span> To create space, place an <span className="text-white">off-ball support player</span> directly next to a defender (horizontally or vertically). Screened defenders are <span className="text-white">FROZEN</span> and cannot move for one turn.</p>
+                </div>
+              </section>
+
+              <section>
+                <h3 className="text-[9px] font-black text-red-400 uppercase tracking-widest mb-1.5 border-b border-zinc-800 pb-0.5">Defensive Strategy (AI)</h3>
+                <div className="space-y-2 text-[9px] font-bold text-zinc-400 leading-relaxed uppercase">
+                   <p><span className="text-white">Blocking shots:</span> Defenders block you automatically by staying <span className="text-white">ADJACENT</span> to you. Move to space and force them to react.</p>
+                   <ul className="list-disc pl-4 space-y-1">
+                    <li><span className="text-white">Positioning:</span> AI prioritizes staying between the ball-carrier and the rim.</li>
+                    <li><span className="text-white">Rim Protection:</span> Defenders will rotate to the basket if you get too close.</li>
+                    <li><span className="text-white">Denial:</span> They will step into pass lanes to prevent easy assists.</li>
+                  </ul>
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <h2 className="text-[11px] font-black text-white uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+            <i className="fa-solid fa-ranking-star text-yellow-500"></i> Hall of Fame
+          </h2>
+          <div className="flex flex-col gap-4 overflow-x-hidden">
+             <RankingTable title="Score Attack (Streak)" data={streakRankings} icon="fa-fire" />
+             <RankingTable title="Time Attack (1 Min)" data={timeRankings} icon="fa-bolt" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default App;

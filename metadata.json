@@ -1,0 +1,5 @@
+{
+  "name": "Tsume Basketball",
+  "description": "A tactical grid-based basketball puzzle game inspired by Tsume Shogi. Solve complex scenarios, outmaneuver the defense, and score within 5 turns using strategic movement and passing.",
+  "requestFramePermissions": []
+}
