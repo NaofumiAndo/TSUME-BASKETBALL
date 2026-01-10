@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: Migrate to Vercel with secure API handling\n\n- Add serverless function to proxy Gemini API calls\n- Update frontend to use secure API endpoint\n- Configure Vercel deployment settings\n- Remove exposed API key from client-side code\n- Update Vite config for Vercel hosting\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+    ]
+  }
+}
