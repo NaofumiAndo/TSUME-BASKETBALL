@@ -277,21 +277,26 @@ export const getStrategyHighlights = (players: Player[], strategy: StrategyType)
 
 export const canScore = (player: Player, players: Player[]): { success: boolean; reason?: string; pts?: number; type?: string } => {
   if (!player.hasBall) return { success: false, reason: "No ball", pts: 0, type: "" };
+
   const dist = getDistance(player.pos, BASKET_POS);
   const isOnArc = isPartOfThreePointArc(player.pos);
-
   const defenders = players.filter(p => p.team === 'defense');
   const adjacentDefenders = defenders.filter(d => getDistance(player.pos, d.pos) <= 1);
 
-  // 3PT shots ONLY allowed from the arc line
+  // STRICT 3PT RULE: MUST be on the white arc line
   if (isOnArc) {
     if (adjacentDefenders.length > 0) {
-      return { success: false, reason: "Contested 3PT shot!", pts: 0, type: "" };
+      return { success: false, reason: "Contested 3PT!", pts: 0, type: "" };
+    }
+    // Double-check: only award 3PT if ACTUALLY on arc
+    if (!THREE_POINT_LINE.some(arcPos => arcPos.x === player.pos.x && arcPos.y === player.pos.y)) {
+      return { success: false, reason: "Not on arc line!", pts: 0, type: "" };
     }
     return { success: true, pts: 3, type: "3-Pointer" };
   }
 
-  // Close range shots (layup/dunk)
+  // NOT on arc = Cannot shoot 3PT
+  // Check for close range (layup/dunk at basket)
   if (dist <= 2) {
     const basketDefender = defenders.find(d => isPosEqual(d.pos, BASKET_POS) || isAdjacent(d.pos, BASKET_POS));
     if (basketDefender) {
@@ -300,9 +305,15 @@ export const canScore = (player: Player, players: Player[]): { success: boolean;
     return { success: true, pts: 2, type: dist === 1 ? "Slam Dunk" : "Layup" };
   }
 
-  // Mid-range shots (inside the arc) require no adjacent defenders
+  // Mid-range shot (2PT) - must be uncontested
   if (adjacentDefenders.length > 0) {
      return { success: false, reason: "Mid-range contested!", pts: 0, type: "" };
   }
+
+  // Final check: If somehow trying to shoot from behind arc but not ON arc line
+  if (isThreePointArea(player.pos) && !isOnArc) {
+    return { success: false, reason: "Must be ON the arc line for 3PT!", pts: 0, type: "" };
+  }
+
   return { success: true, pts: 2, type: "Jump Shot" };
 };
