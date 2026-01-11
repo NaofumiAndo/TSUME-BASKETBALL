@@ -2,7 +2,7 @@
 import { Scenario, Position } from './types';
 
 export const GRID_SIZE = 9;
-export const BASKET_POS = { x: 4, y: 1 }; 
+export const BASKET_POS = { x: 4, y: 1 };
 export const PAINT_BOUNDS = { xMin: 3, xMax: 5, yMin: 1, yMax: 3 };
 
 // Adjusted 3pt arc to have 5 points in the middle section (y=5)
@@ -10,6 +10,13 @@ export const THREE_POINT_LINE: Position[] = [
   { x: 1, y: 1 }, { x: 1, y: 2 }, { x: 1, y: 3 }, { x: 1, y: 4 },
   { x: 2, y: 5 }, { x: 3, y: 5 }, { x: 4, y: 5 }, { x: 5, y: 5 }, { x: 6, y: 5 },
   { x: 7, y: 4 }, { x: 7, y: 3 }, { x: 7, y: 2 }, { x: 7, y: 1 }
+];
+
+// Layup positions - specific squares where layups can be made
+export const LAYUP_POSITIONS: Position[] = [
+  { x: 2, y: 4 }, { x: 3, y: 4 }, { x: 4, y: 4 },
+  { x: 3, y: 5 }, { x: 4, y: 5 },
+  { x: 2, y: 6 }, { x: 3, y: 6 }, { x: 4, y: 6 }
 ];
 
 export const INITIAL_SCENARIOS: Scenario[] = [

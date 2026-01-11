@@ -1,6 +1,6 @@
 
 import { Position, Player, StrategyType } from '../types';
-import { BASKET_POS, GRID_SIZE, THREE_POINT_LINE, PAINT_BOUNDS } from '../constants';
+import { BASKET_POS, GRID_SIZE, THREE_POINT_LINE, PAINT_BOUNDS, LAYUP_POSITIONS } from '../constants';
 
 export const isPosEqual = (a: Position, b: Position) => a.x === b.x && a.y === b.y;
 
@@ -31,6 +31,10 @@ export const isThreePointArea = (pos: Position) => {
 
 export const isPartOfThreePointArc = (pos: Position) => {
   return THREE_POINT_LINE.some(linePos => isPosEqual(linePos, pos));
+};
+
+export const isLayupPosition = (pos: Position) => {
+  return LAYUP_POSITIONS.some(layupPos => isPosEqual(layupPos, pos));
 };
 
 export const isInPaint = (pos: Position) => {
@@ -296,19 +300,19 @@ export const canScore = (player: Player, players: Player[]): { success: boolean;
     return { success: true, pts: 3, type: "3-Pointer" };
   }
 
-  // STRICT RULE 2: 2PT shots ONLY near basket (layup/dunk range)
-  if (dist <= 2) {
-    // If player is EXACTLY at basket position - automatic dunk, no rim protection check
-    if (isPosEqual(player.pos, BASKET_POS)) {
-      return { success: true, pts: 2, type: "Slam Dunk" };
-    }
+  // STRICT RULE 2: Slam dunk at basket position
+  if (isPosEqual(player.pos, BASKET_POS)) {
+    return { success: true, pts: 2, type: "Slam Dunk" };
+  }
 
-    // For players NEAR basket (not at it), check rim protection
+  // STRICT RULE 3: Layup ONLY from specific positions
+  if (isLayupPosition(player.pos)) {
+    // Check rim protection
     const basketDefender = defenders.find(d => isPosEqual(d.pos, BASKET_POS) || isAdjacent(d.pos, BASKET_POS));
     if (basketDefender) {
       return { success: false, reason: "Rim Protected!", pts: 0, type: "" };
     }
-    return { success: true, pts: 2, type: dist === 1 ? "Layup" : "Close Range" };
+    return { success: true, pts: 2, type: "Layup" };
   }
 
   // NO OTHER SHOTS ALLOWED - Must be on arc or near basket

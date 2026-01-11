@@ -702,7 +702,7 @@ const App: React.FC = () => {
                   <ul className="list-disc pl-4 space-y-1">
                     <li><span className="text-white">3-Pointer:</span> MUST be <span className="text-orange-400">EXACTLY ON THE WHITE ARC LINE</span> + NO adjacent defenders.</li>
                     <li><span className="text-white">Slam Dunk:</span> Move ball-carrier <span className="text-orange-400">INTO THE BASKET</span> to instantly score 2PT!</li>
-                    <li><span className="text-white">Layup (2PT):</span> Within 2 squares of basket + rim area must be <span className="text-red-500">EMPTY</span> of defenders.</li>
+                    <li><span className="text-white">Layup (2PT):</span> ONLY from <span className="text-orange-400">LIGHT ORANGE BLOCKS</span> on the court + rim area must be <span className="text-red-500">EMPTY</span> of defenders.</li>
                   </ul>
                   <p className="mt-2"><span className="text-white">How to Screen:</span> To create space, place an <span className="text-white">off-ball support player</span> directly next to a defender (horizontally or vertically). Screened defenders are <span className="text-white">FROZEN</span> and cannot move for one turn.</p>
                   <p className="mt-2"><span className="text-white">Undo Limit:</span> You can only undo <span className="text-orange-400">ONE action per turn</span>. Button shows "(Used)" after use.</p>
