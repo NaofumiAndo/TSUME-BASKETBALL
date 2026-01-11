@@ -208,9 +208,10 @@ export const aiOptimalWall = (players: Player[]): Player[] => {
   const ballCarrier = offense.find(p => p.hasBall)!;
 
   defenders.forEach((defender) => {
-    // A defender is screened ONLY when sharing a side (orthogonal) with an off-ball offensive player.
-    const isScreened = offense.some(o => !o.hasBall && isOrthogonalAdjacent(o.pos, defender.pos));
-    
+    // A defender is screened when sharing a side (orthogonal) with ANY offensive player.
+    // This includes the ball carrier - screens don't break if you pass to the screener
+    const isScreened = offense.some(o => isOrthogonalAdjacent(o.pos, defender.pos));
+
     // Screened defenders lose their ability to move.
     if (isScreened) {
       return;
@@ -297,11 +298,17 @@ export const canScore = (player: Player, players: Player[]): { success: boolean;
 
   // STRICT RULE 2: 2PT shots ONLY near basket (layup/dunk range)
   if (dist <= 2) {
+    // If player is EXACTLY at basket position - automatic dunk, no rim protection check
+    if (isPosEqual(player.pos, BASKET_POS)) {
+      return { success: true, pts: 2, type: "Slam Dunk" };
+    }
+
+    // For players NEAR basket (not at it), check rim protection
     const basketDefender = defenders.find(d => isPosEqual(d.pos, BASKET_POS) || isAdjacent(d.pos, BASKET_POS));
     if (basketDefender) {
       return { success: false, reason: "Rim Protected!", pts: 0, type: "" };
     }
-    return { success: true, pts: 2, type: dist === 1 ? "Slam Dunk" : "Layup" };
+    return { success: true, pts: 2, type: dist === 1 ? "Layup" : "Close Range" };
   }
 
   // NO OTHER SHOTS ALLOWED - Must be on arc or near basket
