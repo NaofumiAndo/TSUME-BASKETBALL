@@ -13,10 +13,11 @@ export const THREE_POINT_LINE: Position[] = [
 ];
 
 // Layup positions - specific squares where layups can be made
+// Visual coords: (4,2) (4,3) (4,4) (5,3) (5,4) (6,2) (6,3) (6,4)
 export const LAYUP_POSITIONS: Position[] = [
-  { x: 2, y: 4 }, { x: 3, y: 4 }, { x: 4, y: 4 },
-  { x: 3, y: 5 }, { x: 4, y: 5 },
-  { x: 2, y: 6 }, { x: 3, y: 6 }, { x: 4, y: 6 }
+  { x: 3, y: 1 }, { x: 3, y: 2 }, { x: 3, y: 3 },
+  { x: 4, y: 2 }, { x: 4, y: 3 },
+  { x: 5, y: 1 }, { x: 5, y: 2 }, { x: 5, y: 3 }
 ];
 
 export const INITIAL_SCENARIOS: Scenario[] = [
