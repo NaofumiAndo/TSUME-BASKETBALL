@@ -77,7 +77,17 @@ const App: React.FC = () => {
         setGameState(prev => {
           if (prev.timeLeft <= 1) {
             if (timerRef.current) clearInterval(timerRef.current);
-            return { ...prev, timeLeft: 0, status: 'lost', message: 'TIME EXPIRED!', showNameInput: true };
+
+            // Show time expired banner
+            setBannerContent({ points: 0, type: '', message: 'TIME EXPIRED!' });
+            setShowBanner(true);
+
+            setTimeout(() => {
+              setShowBanner(false);
+              setGameState(p => ({ ...p, timeLeft: 0, status: 'lost', message: 'TIME EXPIRED! GAME OVER', showNameInput: true }));
+            }, 1500);
+
+            return { ...prev, timeLeft: 0 };
           }
           return { ...prev, timeLeft: prev.timeLeft - 1 };
         });
@@ -345,7 +355,14 @@ const App: React.FC = () => {
   const triggerAiReaction = (offensePlayers: Player[]) => {
     const nextTurnCount = gameState.turnCount + 1;
     if (nextTurnCount >= gameState.maxTurns) {
-      setGameState(prev => ({ ...prev, status: 'lost', message: "STREAK ENDED: Violation!", showNameInput: true }));
+      // Show time up banner
+      setBannerContent({ points: 0, type: '', message: 'TIME UP!' });
+      setShowBanner(true);
+
+      setTimeout(() => {
+        setShowBanner(false);
+        setGameState(prev => ({ ...prev, status: 'lost', message: "TIME UP! GAME OVER", showNameInput: true }));
+      }, 1500);
       return;
     }
     const playersAfterAI = aiOptimalWall(offensePlayers);
@@ -543,11 +560,29 @@ const App: React.FC = () => {
               {/* Score/Game Over Banner */}
               {showBanner && (
                 <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none">
-                  <div className={`animate-[bounce_0.5s_ease-in-out] ${bannerContent.message === 'LOCKED UP!' ? 'bg-red-600' : 'bg-gradient-to-r from-orange-500 to-yellow-500'} px-8 py-6 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] border-4 ${bannerContent.message === 'LOCKED UP!' ? 'border-red-800' : 'border-yellow-300'}`}>
+                  <div className={`animate-[bounce_0.5s_ease-in-out] ${bannerContent.message ? 'bg-red-600' : 'bg-gradient-to-r from-orange-500 to-yellow-500'} px-8 py-6 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] border-4 ${bannerContent.message ? 'border-red-800' : 'border-yellow-300'}`}>
                     {bannerContent.message === 'LOCKED UP!' ? (
                       <div className="text-center">
                         <div className="text-6xl font-black text-white uppercase tracking-tight drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)] animate-pulse">
                           🔒 LOCKED UP! 🔒
+                        </div>
+                        <div className="text-2xl font-black text-red-100 uppercase tracking-wider mt-2">
+                          Game Over!
+                        </div>
+                      </div>
+                    ) : bannerContent.message === 'TIME UP!' ? (
+                      <div className="text-center">
+                        <div className="text-6xl font-black text-white uppercase tracking-tight drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)] animate-pulse">
+                          ⏱️ TIME UP! ⏱️
+                        </div>
+                        <div className="text-2xl font-black text-red-100 uppercase tracking-wider mt-2">
+                          Game Over!
+                        </div>
+                      </div>
+                    ) : bannerContent.message === 'TIME EXPIRED!' ? (
+                      <div className="text-center">
+                        <div className="text-6xl font-black text-white uppercase tracking-tight drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)] animate-pulse">
+                          ⏰ TIME EXPIRED! ⏰
                         </div>
                         <div className="text-2xl font-black text-red-100 uppercase tracking-wider mt-2">
                           Game Over!
