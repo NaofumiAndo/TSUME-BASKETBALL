@@ -311,11 +311,11 @@ const App: React.FC = () => {
             const newHigh = Math.max(newScore, gameState.highScore);
             localStorage.setItem('tsume_high_score', newHigh.toString());
 
-            // Show automatic dunk banner
-            setBannerContent({ points: result.pts || 0, type: 'AUTOMATIC DUNK', message: '' });
+            // Show slam dunk banner
+            setBannerContent({ points: result.pts || 0, type: 'SLAM DUNK', message: '' });
             setShowBanner(true);
 
-            setGameState(prev => ({ ...prev, players: nextPlayers, score: newScore, streak: newStreak, highScore: newHigh, message: `AUTOMATIC DUNK! +${result.pts}. Unstoppable!` }));
+            setGameState(prev => ({ ...prev, players: nextPlayers, score: newScore, streak: newStreak, highScore: newHigh, message: `SLAM DUNK! +${result.pts}. Unstoppable!` }));
             setTimeout(() => {
               setShowBanner(false);
               startNextPossession(newScore, newStreak);
@@ -657,14 +657,17 @@ const App: React.FC = () => {
               {gameState.showNameInput && (
                 <div className="bg-zinc-900 p-4 rounded-2xl border border-zinc-700 shadow-xl flex flex-col gap-3">
                   <h3 className="text-white text-[10px] font-black uppercase text-center">New Score: {gameState.score}!</h3>
-                  <input 
-                    type="text" 
-                    placeholder="ENTER NAME" 
-                    value={playerName} 
+                  <input
+                    type="text"
+                    placeholder="ENTER NAME"
+                    value={playerName}
                     onChange={(e) => setPlayerName(e.target.value.toUpperCase().slice(0, 10))}
                     className="bg-black border border-zinc-700 rounded-lg p-2 text-white text-center text-xs font-black outline-none focus:border-orange-500"
                   />
-                  <button onClick={saveRanking} className="bg-emerald-600 text-white font-black py-2 rounded-lg uppercase text-[10px]">Submit Record</button>
+                  <div className="flex gap-2">
+                    <button onClick={saveRanking} className="flex-1 bg-emerald-600 text-white font-black py-2 rounded-lg uppercase text-[10px]">Submit Record</button>
+                    <button onClick={() => setGameState(prev => ({ ...prev, phase: 'menu', status: 'idle', showNameInput: false }))} className="flex-1 bg-zinc-700 text-white font-black py-2 rounded-lg uppercase text-[10px] border border-zinc-600">Skip</button>
+                  </div>
                 </div>
               )}
 
@@ -695,12 +698,11 @@ const App: React.FC = () => {
               <section>
                 <h3 className="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-1.5 border-b border-zinc-800 pb-0.5">Scoring Requirements</h3>
                 <div className="space-y-2 text-[9px] font-bold text-zinc-400 leading-relaxed uppercase">
-                  <p><span className="text-white">STRICT SCORING ZONES:</span> You can ONLY score from <span className="text-orange-400">TWO ZONES</span> - the arc line or near the basket. <span className="text-red-500">NO MID-RANGE SHOTS!</span></p>
+                  <p><span className="text-white">THREE WAYS TO SCORE:</span> You can score in <span className="text-orange-400">THREE DIFFERENT WAYS</span> - shoot from the arc, drive to the rim, or slam dunk at the basket!</p>
                   <ul className="list-disc pl-4 space-y-1">
-                    <li><span className="text-white">3PT (Arc Only):</span> MUST be <span className="text-orange-400">EXACTLY ON THE WHITE ARC LINE</span> + NO adjacent defenders.</li>
-                    <li><span className="text-white">Automatic Dunk:</span> Move ball-carrier <span className="text-orange-400">INTO THE BASKET</span> to instantly score 2PT!</li>
+                    <li><span className="text-white">3-Pointer:</span> MUST be <span className="text-orange-400">EXACTLY ON THE WHITE ARC LINE</span> + NO adjacent defenders.</li>
+                    <li><span className="text-white">Slam Dunk:</span> Move ball-carrier <span className="text-orange-400">INTO THE BASKET</span> to instantly score 2PT!</li>
                     <li><span className="text-white">Layup (2PT):</span> Within 2 squares of basket + rim area must be <span className="text-red-500">EMPTY</span> of defenders.</li>
-                    <li><span className="text-red-500">Anywhere Else:</span> Shot will be <span className="text-red-500">BLOCKED</span>. Move to arc or attack rim!</li>
                   </ul>
                   <p className="mt-2"><span className="text-white">How to Screen:</span> To create space, place an <span className="text-white">off-ball support player</span> directly next to a defender (horizontally or vertically). Screened defenders are <span className="text-white">FROZEN</span> and cannot move for one turn.</p>
                   <p className="mt-2"><span className="text-white">Undo Limit:</span> You can only undo <span className="text-orange-400">ONE action per turn</span>. Button shows "(Used)" after use.</p>

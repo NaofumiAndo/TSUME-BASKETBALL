@@ -2,7 +2,7 @@
 import React from 'react';
 import { Player, Position, StrategyType, TurnPhase } from '../types';
 import { GRID_SIZE, BASKET_POS } from '../constants';
-import { isPosEqual, isInPaint, isThreePointArea, isPartOfThreePointArc, isOrthogonalAdjacent } from '../utils/gameLogic';
+import { isPosEqual, isInPaint, isThreePointArea, isPartOfThreePointArc, isOrthogonalAdjacent, getDistance } from '../utils/gameLogic';
 
 interface BoardProps {
   players: Player[];
@@ -47,6 +47,7 @@ const Board: React.FC<BoardProps> = ({
     const inPaint = isInPaint(pos);
     const in3ptArea = isThreePointArea(pos);
     const isArc = isPartOfThreePointArc(pos);
+    const isLayupZone = getDistance(pos, BASKET_POS) <= 2 && !isBasket; // Near basket scoring zone
     const isStrategy = showStrategySuggestions && strategyHighlights.some(mv => isPosEqual(mv, pos));
     const isValidTarget = validMoves.some(mv => isPosEqual(mv, pos));
     const isActive = player && player.id === activePlayerId;
@@ -69,7 +70,8 @@ const Board: React.FC<BoardProps> = ({
 
     // Base Court Colors
     let bgColor = 'bg-orange-400';
-    if (inPaint) bgColor = 'bg-orange-300';
+    if (isLayupZone) bgColor = 'bg-emerald-300/60'; // Layup scoring zone (near basket)
+    else if (inPaint) bgColor = 'bg-orange-300';
     else if (in3ptArea) bgColor = 'bg-orange-400/90'; 
 
     // Arc Styling: Making the line visible
