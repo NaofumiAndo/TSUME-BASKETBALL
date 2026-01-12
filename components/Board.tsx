@@ -405,7 +405,7 @@ const Board: React.FC<BoardProps> = ({
     <div className={`flex flex-col w-full max-w-[470px] mx-auto ${is3DMode ? 'gap-0' : 'gap-1'}`} style={is3DMode ? { perspective: '1200px' } : {}}>
       {/* Info displays above court in 3D mode */}
       {is3DMode && (
-        <div className="relative z-30 mb-[-45px]">
+        <div className="relative z-30 mb-[-20px]">
           {renderInfoDisplays3D()}
         </div>
       )}

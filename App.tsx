@@ -547,7 +547,7 @@ const App: React.FC = () => {
         ) : (
           <>
             {/* Phase Explanation Box */}
-            <div className={`w-full max-w-[470px] mx-auto bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2 relative z-30 ${is3DMode ? 'mb-[-40px]' : 'mb-2'}`}>
+            <div className={`w-full max-w-[470px] mx-auto bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2 relative z-30 ${is3DMode ? 'mb-0' : 'mb-2'}`}>
               <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-wide mb-1">Basics:</div>
               <div className="text-[10px] text-zinc-300 leading-relaxed">
                 {gameState.phase === 'off-ball' && (
@@ -563,7 +563,7 @@ const App: React.FC = () => {
             </div>
 
             {/* Phase Progress Indicator */}
-            <div className={`w-full max-w-[470px] mx-auto flex items-center justify-center gap-2 relative z-30 ${is3DMode ? 'mb-[-40px]' : 'mb-2'}`}>
+            <div className={`w-full max-w-[470px] mx-auto flex items-center justify-center gap-2 relative z-30 ${is3DMode ? 'mb-[-15px]' : 'mb-2'}`}>
               <div className={`px-3 py-1.5 rounded-lg font-black text-[9px] uppercase tracking-wider transition-all ${gameState.phase === 'off-ball' ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-[0_0_15px_rgba(251,191,36,0.5)] scale-105' : 'bg-zinc-800 text-zinc-500 border border-zinc-700'}`}>
                 OFF-BALL
               </div>
