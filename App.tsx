@@ -519,6 +519,21 @@ const App: React.FC = () => {
           </div>
         ) : (
           <>
+            {/* Phase Progress Indicator */}
+            <div className="w-full max-w-[470px] mx-auto mb-2 flex items-center justify-center gap-2">
+              <div className={`px-3 py-1.5 rounded-lg font-black text-[9px] uppercase tracking-wider transition-all ${gameState.phase === 'off-ball' ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-[0_0_15px_rgba(251,191,36,0.5)] scale-105' : 'bg-zinc-800 text-zinc-500 border border-zinc-700'}`}>
+                OFF-BALL
+              </div>
+              <div className="text-zinc-600 font-black text-xs">›</div>
+              <div className={`px-3 py-1.5 rounded-lg font-black text-[9px] uppercase tracking-wider transition-all ${gameState.phase === 'ball-carrier' ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)] scale-105' : 'bg-zinc-800 text-zinc-500 border border-zinc-700'}`}>
+                BALL HOLDER
+              </div>
+              <div className="text-zinc-600 font-black text-xs">›</div>
+              <div className={`px-3 py-1.5 rounded-lg font-black text-[9px] uppercase tracking-wider transition-all ${gameState.phase === 'executing' || gameState.phase === 'passing' ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.5)] scale-105' : 'bg-zinc-800 text-zinc-500 border border-zinc-700'}`}>
+                PASS/SHOOT
+              </div>
+            </div>
+
             <div className="relative">
               <Board
                 players={gameState.players}
