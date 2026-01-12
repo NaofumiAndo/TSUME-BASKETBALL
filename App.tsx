@@ -229,18 +229,31 @@ const App: React.FC = () => {
     const initialPlayers = generateTacticalScenario();
     setHistory([]);
     setUndoUsed(false); // Reset undo for new possession
-    setGameState(prev => ({
-      ...prev,
-      players: initialPlayers,
-      score: prevScore,
-      streak: prevStreak,
-      turnCount: 0,
-      activePlayerId: null,
-      message: prev.mode === 'time-attack' ? 'Bucket! Keep moving!' : `Streak: ${prevStreak}. Keep it alive!`,
-      movedPlayerIds: [],
-      phase: 'off-ball',
-      activeStrategy: null
-    }));
+
+    setGameState(prev => {
+      // Special message when advanced defense activates at streak 5
+      let message = '';
+      if (prev.mode === 'time-attack') {
+        message = 'Bucket! Keep moving!';
+      } else if (prevStreak === 5) {
+        message = '⚠️ STREAK 5! Defense now blocks scoring positions!';
+      } else {
+        message = `Streak: ${prevStreak}. Keep it alive!`;
+      }
+
+      return {
+        ...prev,
+        players: initialPlayers,
+        score: prevScore,
+        streak: prevStreak,
+        turnCount: 0,
+        activePlayerId: null,
+        message,
+        movedPlayerIds: [],
+        phase: 'off-ball',
+        activeStrategy: null
+      };
+    });
   };
 
   const handleSquareClick = (pos: Position) => {
@@ -360,7 +373,7 @@ const App: React.FC = () => {
       }, 1500);
       return;
     }
-    const playersAfterAI = aiOptimalWall(offensePlayers);
+    const playersAfterAI = aiOptimalWall(offensePlayers, gameState.streak);
     setUndoUsed(false); // Reset undo for new turn after AI reaction
     setGameState(prev => ({
       ...prev,

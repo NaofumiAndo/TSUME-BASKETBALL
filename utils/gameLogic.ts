@@ -207,11 +207,14 @@ export const generateTacticalScenario = (): Player[] => {
   return players;
 };
 
-export const aiOptimalWall = (players: Player[]): Player[] => {
+export const aiOptimalWall = (players: Player[], streak: number = 0): Player[] => {
   const nextPlayers = players.map(p => ({ ...p }));
   const defenders = nextPlayers.filter(p => p.team === 'defense');
   const offense = nextPlayers.filter(p => p.team === 'offense');
   const ballCarrier = offense.find(p => p.hasBall)!;
+
+  // After streak 5, activate advanced defensive AI: prioritize blocking scoring positions
+  const advancedDefense = streak >= 5;
 
   defenders.forEach((defender) => {
     // A defender is screened when sharing a side (orthogonal) with ANY offensive player.
@@ -237,6 +240,37 @@ export const aiOptimalWall = (players: Player[]): Player[] => {
     }
 
     let targetPos = defender.pos;
+
+    // ADVANCED DEFENSE (Streak 5+): Prioritize blocking scoring positions
+    if (advancedDefense) {
+      const distToBasket = getDistance(ballCarrier.pos, BASKET_POS);
+
+      // Priority 1: Block basket if ball carrier is close (within 4 squares)
+      if (distToBasket <= 4 && moves.some(m => isPosEqual(m, BASKET_POS))) {
+        targetPos = BASKET_POS;
+        defender.pos = targetPos;
+        return;
+      }
+
+      // Priority 2: Block 3PT shots by being adjacent to arc positions near ball carrier
+      const nearbyArcPositions = THREE_POINT_LINE.filter(arcPos =>
+        getDistance(ballCarrier.pos, arcPos) <= 3
+      );
+
+      for (const arcPos of nearbyArcPositions) {
+        // Check if we can move adjacent to this arc position
+        const adjacentToArc = moves.find(m =>
+          getDistance(m, arcPos) <= 1 && !isPosEqual(m, arcPos)
+        );
+        if (adjacentToArc) {
+          targetPos = adjacentToArc;
+          defender.pos = targetPos;
+          return;
+        }
+      }
+    }
+
+    // Standard defensive positioning (used always, or as fallback after streak 5)
     const assigned = offense.find(o => o.id === defender.assignedTo);
     if (defender.assignedTo === ballCarrier.id) {
       const ideal = { x: Math.round((ballCarrier.pos.x + BASKET_POS.x) / 2), y: Math.round((ballCarrier.pos.y + BASKET_POS.y) / 2) };
