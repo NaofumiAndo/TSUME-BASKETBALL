@@ -191,7 +191,7 @@ const Board: React.FC<BoardProps> = ({
                   className="relative"
                   style={{
                     transformStyle: 'preserve-3d',
-                    transform: 'translateZ(30px)',
+                    transform: 'translateZ(30px) translateY(-40%)',
                   }}
                 >
                   {/* Drop shadow on floor */}
@@ -405,7 +405,7 @@ const Board: React.FC<BoardProps> = ({
     <div className={`flex flex-col w-full max-w-[470px] mx-auto ${is3DMode ? 'gap-0' : 'gap-1'}`} style={is3DMode ? { perspective: '1200px' } : {}}>
       {/* Info displays above court in 3D mode */}
       {is3DMode && (
-        <div className="relative z-30 mb-[-20px]">
+        <div className="relative z-30 mb-[-45px]">
           {renderInfoDisplays3D()}
         </div>
       )}
