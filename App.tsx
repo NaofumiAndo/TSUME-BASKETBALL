@@ -32,6 +32,9 @@ const App: React.FC = () => {
   const [playerName, setPlayerName] = useState('');
   const timerRef = useRef<number | null>(null);
 
+  // 2D/3D view mode
+  const [is3DMode, setIs3DMode] = useState(false);
+
   // Banner state for scoring and game over
   const [showBanner, setShowBanner] = useState(false);
   const [bannerContent, setBannerContent] = useState({ points: 0, type: '', message: '' });
@@ -579,6 +582,7 @@ const App: React.FC = () => {
                 score={gameState.score}
                 turnCount={gameState.turnCount}
                 maxTurns={gameState.maxTurns}
+                is3DMode={is3DMode}
               />
 
               {/* Score/Game Over Banner */}
@@ -631,11 +635,20 @@ const App: React.FC = () => {
             </div>
 
             {gameState.status === 'playing' && (
-              <div className="grid grid-cols-3 gap-2">
-                <button onClick={() => selectStrategy('pick-and-roll')} className={`py-2 rounded-xl text-[8px] font-black uppercase transition-all border ${gameState.activeStrategy === 'pick-and-roll' ? 'bg-orange-600 border-orange-400 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}>Pick & Roll</button>
-                <button onClick={() => selectStrategy('floor-spacing')} className={`py-2 rounded-xl text-[8px] font-black uppercase transition-all border ${gameState.activeStrategy === 'floor-spacing' ? 'bg-orange-600 border-orange-400 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}>Spacing</button>
-                <button onClick={() => selectStrategy('backdoor-cut')} className={`py-2 rounded-xl text-[8px] font-black uppercase transition-all border ${gameState.activeStrategy === 'backdoor-cut' ? 'bg-orange-600 border-orange-400 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}>Backdoor</button>
-              </div>
+              <>
+                <div className="grid grid-cols-3 gap-2">
+                  <button onClick={() => selectStrategy('pick-and-roll')} className={`py-2 rounded-xl text-[8px] font-black uppercase transition-all border ${gameState.activeStrategy === 'pick-and-roll' ? 'bg-orange-600 border-orange-400 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}>Pick & Roll</button>
+                  <button onClick={() => selectStrategy('floor-spacing')} className={`py-2 rounded-xl text-[8px] font-black uppercase transition-all border ${gameState.activeStrategy === 'floor-spacing' ? 'bg-orange-600 border-orange-400 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}>Spacing</button>
+                  <button onClick={() => selectStrategy('backdoor-cut')} className={`py-2 rounded-xl text-[8px] font-black uppercase transition-all border ${gameState.activeStrategy === 'backdoor-cut' ? 'bg-orange-600 border-orange-400 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}>Backdoor</button>
+                </div>
+                <button
+                  onClick={() => setIs3DMode(!is3DMode)}
+                  className={`w-full py-2 rounded-xl text-[8px] font-black uppercase transition-all border flex items-center justify-center gap-2 ${is3DMode ? 'bg-purple-600 border-purple-400 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}
+                >
+                  <i className={`fa-solid ${is3DMode ? 'fa-cube' : 'fa-square'}`}></i>
+                  {is3DMode ? '3D View' : '2D View'}
+                </button>
+              </>
             )}
 
             <div className="flex flex-col gap-2 w-full">

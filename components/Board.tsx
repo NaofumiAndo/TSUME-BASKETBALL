@@ -19,6 +19,7 @@ interface BoardProps {
   score: number;
   turnCount: number;
   maxTurns: number;
+  is3DMode: boolean;
 }
 
 const Board: React.FC<BoardProps> = ({
@@ -35,7 +36,8 @@ const Board: React.FC<BoardProps> = ({
   streak,
   score,
   turnCount,
-  maxTurns
+  maxTurns,
+  is3DMode
 }) => {
   const getStrategyLabel = (strat: StrategyType) => {
     switch (strat) {
@@ -175,7 +177,9 @@ const Board: React.FC<BoardProps> = ({
         {player && (
           <div
             className={`
-              relative w-9 h-9 rounded-full flex items-center justify-center text-[10px] font-black shadow-lg z-20
+              relative flex items-center justify-center text-[10px] font-black z-20
+              ${is3DMode ? 'w-8 h-12' : 'w-9 h-9'}
+              ${is3DMode ? 'rounded-t-full' : 'rounded-full'}
               ${player.team === 'offense' ? 'bg-blue-700 text-white' : 'bg-red-600 text-white'}
               ${player.hasBall ? 'ring-2 ring-orange-300 scale-105 shadow-[0_0_15px_rgba(253,224,71,0.6)]' : ''}
               ${hasMoved && player.team === 'offense' ? 'opacity-40' : 'opacity-100'}
@@ -184,6 +188,14 @@ const Board: React.FC<BoardProps> = ({
               ${isPassTarget ? 'ring-4 ring-emerald-400 animate-pulse shadow-[0_0_15px_rgba(52,211,153,0.8)]' : ''}
               transition-all duration-300
             `}
+            style={is3DMode ? {
+              transformStyle: 'preserve-3d',
+              transform: 'translateZ(20px)',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+              background: player.team === 'offense'
+                ? 'linear-gradient(to bottom, #1d4ed8 0%, #1e40af 50%, #1e3a8a 100%)'
+                : 'linear-gradient(to bottom, #dc2626 0%, #b91c1c 50%, #991b1b 100%)'
+            } : {}}
           >
             {player.role || player.name}
             
@@ -205,8 +217,8 @@ const Board: React.FC<BoardProps> = ({
   const axisLabelStyle = "flex items-center justify-center text-[8px] font-black text-zinc-500 uppercase";
 
   return (
-    <div className="flex flex-col gap-1 w-full max-w-[470px] mx-auto">
-      <div className="flex gap-1 w-full">
+    <div className="flex flex-col gap-1 w-full max-w-[470px] mx-auto" style={is3DMode ? { perspective: '1200px' } : {}}>
+      <div className="flex gap-1 w-full" style={is3DMode ? { transformStyle: 'preserve-3d', transform: 'rotateX(45deg) scale(0.9)' } : {}}>
         {/* Y-axis labels */}
         <div className="flex flex-col w-4 py-1">
           {Array.from({ length: 9 }).map((_, i) => (
@@ -217,7 +229,7 @@ const Board: React.FC<BoardProps> = ({
         </div>
 
         {/* The Grid */}
-        <div className="aspect-square flex-1 border-4 border-zinc-800 rounded-lg shadow-2xl overflow-hidden grid grid-cols-9 grid-rows-9 bg-zinc-900">
+        <div className="aspect-square flex-1 border-4 border-zinc-800 rounded-lg shadow-2xl overflow-hidden grid grid-cols-9 grid-rows-9 bg-zinc-900" style={is3DMode ? { transformStyle: 'preserve-3d' } : {}}>
           {Array.from({ length: 81 }).map((_, i) => {
             const x = i % 9;
             const y = Math.floor(i / 9);
