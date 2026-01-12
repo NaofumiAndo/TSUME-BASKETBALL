@@ -17,6 +17,8 @@ interface BoardProps {
   showStrategySuggestions: boolean;
   streak: number;
   score: number;
+  turnCount: number;
+  maxTurns: number;
 }
 
 const Board: React.FC<BoardProps> = ({
@@ -31,7 +33,9 @@ const Board: React.FC<BoardProps> = ({
   phase,
   showStrategySuggestions,
   streak,
-  score
+  score,
+  turnCount,
+  maxTurns
 }) => {
   const getStrategyLabel = (strat: StrategyType) => {
     switch (strat) {
@@ -101,7 +105,7 @@ const Board: React.FC<BoardProps> = ({
       >
         {isRow1 && phase === 'off-ball' && x === 4 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
-            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-[10px] font-black px-3 py-1 rounded-lg shadow-[0_0_20px_rgba(251,191,36,0.6)] border-2 border-yellow-300 animate-pulse uppercase tracking-tight whitespace-nowrap">
+            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-[11px] font-black px-3 py-1 rounded-lg shadow-[0_0_20px_rgba(251,191,36,0.6)] border-2 border-yellow-300 animate-pulse uppercase tracking-tight whitespace-nowrap">
               PHASE: MOVE OFF-BALL PLAYERS
             </div>
           </div>
@@ -109,8 +113,26 @@ const Board: React.FC<BoardProps> = ({
 
         {isRow1 && phase === 'ball-carrier' && x === 4 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
-            <div className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-[10px] font-black px-3 py-1 rounded-lg shadow-[0_0_20px_rgba(59,130,246,0.6)] border-2 border-blue-300 animate-pulse uppercase tracking-tight whitespace-nowrap">
+            <div className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-[11px] font-black px-3 py-1 rounded-lg shadow-[0_0_20px_rgba(59,130,246,0.6)] border-2 border-blue-300 animate-pulse uppercase tracking-tight whitespace-nowrap">
               PHASE: MOVE BALL HOLDER
+            </div>
+          </div>
+        )}
+
+        {isRow1 && x === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
+            <div className="bg-zinc-800 text-white text-[7px] font-black px-2 py-1 rounded-lg border border-zinc-700 uppercase text-center leading-tight">
+              TURN<br />{turnCount + 1}/{maxTurns}
+            </div>
+          </div>
+        )}
+
+        {isRow1 && x === 1 && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
+            <div className="flex gap-0.5 px-1">
+              {[...Array(maxTurns)].map((_, i) => (
+                <div key={i} className={`w-2 h-2 rounded-full ${i < turnCount ? 'bg-zinc-600' : 'bg-red-600 shadow-[0_0_4px_rgba(220,38,38,0.4)]'}`} />
+              ))}
             </div>
           </div>
         )}

@@ -519,20 +519,6 @@ const App: React.FC = () => {
           </div>
         ) : (
           <>
-            <div className="flex gap-2 w-full h-fit">
-              <div className="bg-zinc-900 p-3 rounded-2xl border border-zinc-800 flex flex-col justify-center">
-                <div className="flex justify-between items-center mb-1">
-                  <h2 className="text-[8px] font-black text-white uppercase">Turn Progression</h2>
-                  <span className="text-[8px] text-orange-500 font-black">{gameState.turnCount + 1}/4</span>
-                </div>
-                <div className="flex gap-0.5">
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i} className={`h-1.5 flex-1 rounded-full ${i < gameState.turnCount ? 'bg-zinc-800' : 'bg-red-600 shadow-[0_0_8px_rgba(220,38,38,0.4)]'}`} />
-                  ))}
-                </div>
-              </div>
-            </div>
-
             <div className="relative">
               <Board
                 players={gameState.players}
@@ -547,6 +533,8 @@ const App: React.FC = () => {
                 showStrategySuggestions={gameState.activeStrategy !== null}
                 streak={gameState.streak}
                 score={gameState.score}
+                turnCount={gameState.turnCount}
+                maxTurns={gameState.maxTurns}
               />
 
               {/* Score/Game Over Banner */}
