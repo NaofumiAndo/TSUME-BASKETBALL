@@ -74,7 +74,7 @@ const Board: React.FC<BoardProps> = ({
 
     // Base Court Colors
     let bgColor = 'bg-orange-400';
-    if (isRow1) bgColor = 'bg-zinc-900'; // Row 1 is dark/blocked
+    if (isRow1) bgColor = 'bg-orange-400'; // Row 1 same orange as court
     else if (isLayupZone) bgColor = 'bg-orange-200'; // Light orange for layup zones
     else if (inPaint) bgColor = 'bg-orange-300';
     else if (in3ptArea) bgColor = 'bg-orange-400/90';
@@ -97,8 +97,8 @@ const Board: React.FC<BoardProps> = ({
       >
         {isRow1 && phase === 'off-ball' && x === 4 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
-            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-[10px] font-black px-3 py-1 rounded-lg shadow-[0_0_20px_rgba(251,191,36,0.6)] border-2 border-yellow-300 animate-pulse uppercase tracking-wider">
-              OFF-BALL
+            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-[8px] font-black px-3 py-1 rounded-lg shadow-[0_0_20px_rgba(251,191,36,0.6)] border-2 border-yellow-300 animate-pulse uppercase tracking-tight whitespace-nowrap">
+              PHASE: OFF-BALL MOVEMENT
             </div>
           </div>
         )}

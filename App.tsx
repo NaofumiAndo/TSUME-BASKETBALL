@@ -527,10 +527,10 @@ const App: React.FC = () => {
               <div className="flex-1 bg-zinc-900 p-3 rounded-2xl border border-zinc-800 flex flex-col justify-center">
                 <div className="flex justify-between items-center mb-1">
                   <h2 className="text-[8px] font-black text-white uppercase">Turn Progression</h2>
-                  <span className="text-[8px] text-orange-500 font-black">{gameState.turnCount + 1}/5</span>
+                  <span className="text-[8px] text-orange-500 font-black">{gameState.turnCount + 1}/4</span>
                 </div>
                 <div className="flex gap-0.5">
-                  {[...Array(5)].map((_, i) => (
+                  {[...Array(4)].map((_, i) => (
                     <div key={i} className={`h-1.5 flex-1 rounded-full ${i < gameState.turnCount ? 'bg-zinc-800' : 'bg-red-600 shadow-[0_0_8px_rgba(220,38,38,0.4)]'}`} />
                   ))}
                 </div>
@@ -540,12 +540,6 @@ const App: React.FC = () => {
                   {gameState.message}
                 </div>
               </div>
-            </div>
-
-            <div className="w-full flex justify-center">
-              <span className="bg-zinc-800 px-3 py-1 rounded-full border border-zinc-700 text-[9px] font-black text-orange-400 uppercase tracking-widest shadow-lg">
-                Phase: {getPhaseText(gameState.phase)}
-              </span>
             </div>
 
             <div className="relative">
