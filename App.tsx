@@ -255,16 +255,13 @@ const App: React.FC = () => {
           return;
         }
         if (gameState.movedPlayerIds.includes(clickedPlayer.id)) return;
-        
+
         if (activePlayer && clickedPlayer.id === activePlayer.id) {
-          saveToHistory();
-          const nextMoved = [...gameState.movedPlayerIds, activePlayer.id];
+          // Deselect the player instead of finalizing position
           setGameState(prev => ({
             ...prev,
-            movedPlayerIds: nextMoved,
             activePlayerId: null,
-            message: nextMoved.length >= 4 ? "Off-ball set. Choose Ball-Carrier movement." : `Support moves: ${nextMoved.length}/4`,
-            phase: nextMoved.length >= 4 ? 'ball-carrier' : 'off-ball'
+            message: `Support moves: ${gameState.movedPlayerIds.length}/4`
           }));
           return;
         }
@@ -287,12 +284,11 @@ const App: React.FC = () => {
       const ballCarrier = gameState.players.find(p => p.hasBall)!;
       if (clickedPlayer && clickedPlayer.id === ballCarrier.id) {
         if (activePlayer && activePlayer.id === ballCarrier.id) {
-          saveToHistory();
+          // Deselect the ball carrier instead of finalizing
           setGameState(prev => ({
             ...prev,
-            phase: 'executing',
             activePlayerId: null,
-            message: "Action Phase: Finalize with a Shot or Pass."
+            message: "Off-ball set. Choose Ball-Carrier movement."
           }));
           return;
         }
@@ -506,11 +502,11 @@ const App: React.FC = () => {
     <div className="min-h-screen flex flex-col items-center bg-zinc-950 p-3 md:p-6 selection:bg-orange-500 overflow-x-hidden pb-10">
       <header className="w-full max-w-lg mb-4 text-center">
         <h1 className="text-xl md:text-2xl font-black text-orange-500 tracking-tighter italic uppercase">Tsume Basketball</h1>
-        <div className="flex justify-center gap-4 text-[10px] font-bold uppercase text-zinc-500 tracking-widest mt-1">
-          <span>Streak: <span className="text-white">{gameState.streak}</span></span>
-          <span>Score: <span className="text-white">{gameState.score}</span></span>
-          {gameState.mode === 'time-attack' && <span>Time: <span className="text-red-500">{gameState.timeLeft}s</span></span>}
-        </div>
+        {gameState.mode === 'time-attack' && (
+          <div className="flex justify-center text-[10px] font-bold uppercase text-zinc-500 tracking-widest mt-1">
+            <span>Time: <span className="text-red-500">{gameState.timeLeft}s</span></span>
+          </div>
+        )}
       </header>
 
       <div className="w-full max-w-lg flex flex-col gap-3">
@@ -524,7 +520,7 @@ const App: React.FC = () => {
         ) : (
           <>
             <div className="flex gap-2 w-full h-fit">
-              <div className="flex-1 bg-zinc-900 p-3 rounded-2xl border border-zinc-800 flex flex-col justify-center">
+              <div className="bg-zinc-900 p-3 rounded-2xl border border-zinc-800 flex flex-col justify-center">
                 <div className="flex justify-between items-center mb-1">
                   <h2 className="text-[8px] font-black text-white uppercase">Turn Progression</h2>
                   <span className="text-[8px] text-orange-500 font-black">{gameState.turnCount + 1}/4</span>
@@ -533,11 +529,6 @@ const App: React.FC = () => {
                   {[...Array(4)].map((_, i) => (
                     <div key={i} className={`h-1.5 flex-1 rounded-full ${i < gameState.turnCount ? 'bg-zinc-800' : 'bg-red-600 shadow-[0_0_8px_rgba(220,38,38,0.4)]'}`} />
                   ))}
-                </div>
-              </div>
-              <div className="flex-[2] bg-zinc-900 p-3 rounded-2xl border border-zinc-800 flex flex-col justify-center min-h-[60px] relative">
-                <div className={`text-[10px] font-bold leading-tight mt-1 ${gameState.status === 'lost' ? 'text-red-400' : 'text-zinc-300'}`}>
-                  {gameState.message}
                 </div>
               </div>
             </div>
@@ -626,12 +617,12 @@ const App: React.FC = () => {
                 </button>
               )}
               {gameState.phase === 'ball-carrier' && gameState.status === 'playing' && (
-                <button 
-                  onClick={() => { saveToHistory(); setGameState(p => ({ ...p, phase: 'executing', activePlayerId: null })); }} 
+                <button
+                  onClick={() => { saveToHistory(); setGameState(p => ({ ...p, phase: 'executing', activePlayerId: null })); }}
                   className="w-full bg-emerald-600 text-white font-black py-4 rounded-xl uppercase text-xs tracking-widest border-2 border-emerald-400 hover:bg-emerald-500 transition-all shadow-[0_4px_20px_rgba(16,185,129,0.4)] flex items-center justify-center gap-2 group"
                 >
                   <i className="fa-solid fa-basketball text-emerald-100 group-hover:animate-bounce"></i>
-                  Ready to Execute Action
+                  Finalize Ball Holder Position
                 </button>
               )}
               {gameState.phase === 'executing' && gameState.status === 'playing' && (

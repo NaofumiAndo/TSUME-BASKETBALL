@@ -101,8 +101,16 @@ const Board: React.FC<BoardProps> = ({
       >
         {isRow1 && phase === 'off-ball' && x === 4 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
-            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-[9px] font-black px-3 py-1 rounded-lg shadow-[0_0_20px_rgba(251,191,36,0.6)] border-2 border-yellow-300 animate-pulse uppercase tracking-tight whitespace-nowrap">
+            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-[10px] font-black px-3 py-1 rounded-lg shadow-[0_0_20px_rgba(251,191,36,0.6)] border-2 border-yellow-300 animate-pulse uppercase tracking-tight whitespace-nowrap">
               PHASE: MOVE OFF-BALL PLAYERS
+            </div>
+          </div>
+        )}
+
+        {isRow1 && phase === 'ball-carrier' && x === 4 && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
+            <div className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-[10px] font-black px-3 py-1 rounded-lg shadow-[0_0_20px_rgba(59,130,246,0.6)] border-2 border-blue-300 animate-pulse uppercase tracking-tight whitespace-nowrap">
+              PHASE: MOVE BALL HOLDER
             </div>
           </div>
         )}
