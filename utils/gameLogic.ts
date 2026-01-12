@@ -52,6 +52,8 @@ export const getPlayerAt = (pos: Position, players: Player[]) => {
 
 export const isValidMove = (player: Player, target: Position, players: Player[]) => {
   if (target.x < 0 || target.x >= GRID_SIZE || target.y < 0 || target.y >= GRID_SIZE) return false;
+  // Block visual row 1 (internal y=0) for all players
+  if (target.y === 0) return false;
   const dist = getDistance(player.pos, target);
   if (dist > 1) return false;
   if (dist === 1 && getPlayerAt(target, players)) return false;
@@ -227,7 +229,8 @@ export const aiOptimalWall = (players: Player[]): Player[] => {
       for (let y = -1; y <= 1; y++) {
         if (x === 0 && y === 0) continue;
         const p = { x: defender.pos.x + x, y: defender.pos.y + y };
-        if (p.x >= 0 && p.x < GRID_SIZE && p.y >= 0 && p.y < GRID_SIZE && !nextPlayers.find(pl => pl.id !== defender.id && isPosEqual(pl.pos, p))) {
+        // Block row 1 (y=0) and check bounds
+        if (p.x >= 0 && p.x < GRID_SIZE && p.y > 0 && p.y < GRID_SIZE && !nextPlayers.find(pl => pl.id !== defender.id && isPosEqual(pl.pos, p))) {
           moves.push(p);
         }
       }

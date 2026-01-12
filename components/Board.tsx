@@ -42,6 +42,10 @@ const Board: React.FC<BoardProps> = ({
 
   const renderSquare = (x: number, y: number) => {
     const pos = { x, y };
+
+    // Row 1 (y=0) is reserved for phase display
+    const isRow1 = y === 0;
+
     const player = players.find(p => isPosEqual(p.pos, pos));
     const isBasket = isPosEqual(pos, BASKET_POS);
     const inPaint = isInPaint(pos);
@@ -52,7 +56,7 @@ const Board: React.FC<BoardProps> = ({
     const isValidTarget = validMoves.some(mv => isPosEqual(mv, pos));
     const isActive = player && player.id === activePlayerId;
     const hasMoved = player && movedPlayerIds.includes(player.id);
-    
+
     // Logic for suggesting which player needs to move
     const isSuggestedMover = player?.team === 'offense' && (
       (phase === 'off-ball' && !player.hasBall && !hasMoved) ||
@@ -62,17 +66,18 @@ const Board: React.FC<BoardProps> = ({
     const isPassTarget = player && passablePlayerIds.includes(player.id);
 
     // Defenders are only screened when sharing a side (orthogonal adjacency) with an off-ball offensive player.
-    const isScreened = player?.team === 'defense' && players.some(o => 
-      o.team === 'offense' && 
-      !o.hasBall && 
+    const isScreened = player?.team === 'defense' && players.some(o =>
+      o.team === 'offense' &&
+      !o.hasBall &&
       isOrthogonalAdjacent(o.pos, player.pos)
     );
 
     // Base Court Colors
     let bgColor = 'bg-orange-400';
-    if (isLayupZone) bgColor = 'bg-orange-200'; // Light orange for layup zones
+    if (isRow1) bgColor = 'bg-zinc-900'; // Row 1 is dark/blocked
+    else if (isLayupZone) bgColor = 'bg-orange-200'; // Light orange for layup zones
     else if (inPaint) bgColor = 'bg-orange-300';
-    else if (in3ptArea) bgColor = 'bg-orange-400/90'; 
+    else if (in3ptArea) bgColor = 'bg-orange-400/90';
 
     // Arc Styling: Making the line visible
     const arcStyle = isArc ? 'ring-2 ring-white/70 z-10 shadow-[0_0_8px_rgba(255,255,255,0.4)]' : '';
@@ -90,6 +95,14 @@ const Board: React.FC<BoardProps> = ({
           ${isValidTarget ? 'after:content-[""] after:w-3 after:h-3 after:bg-white/40 after:rounded-full after:z-10 after:absolute after:inset-auto after:block animate-pulse' : ''}
         `}
       >
+        {isRow1 && phase === 'off-ball' && x === 4 && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
+            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-[10px] font-black px-3 py-1 rounded-lg shadow-[0_0_20px_rgba(251,191,36,0.6)] border-2 border-yellow-300 animate-pulse uppercase tracking-wider">
+              OFF-BALL
+            </div>
+          </div>
+        )}
+
         {isBasket && (
           <div className="absolute inset-0 flex items-center justify-center text-red-600 animate-pulse z-10 bg-black/10">
             <i className="fa-solid fa-basketball fa-2xl"></i>

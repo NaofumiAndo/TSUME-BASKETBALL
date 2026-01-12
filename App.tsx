@@ -12,7 +12,7 @@ const App: React.FC = () => {
     streak: 0,
     highScore: 0,
     turnCount: 0,
-    maxTurns: 5,
+    maxTurns: 4,
     status: 'idle',
     activePlayerId: null,
     message: 'Welcome to Tsume Basketball.',
@@ -27,7 +27,6 @@ const App: React.FC = () => {
   // History stack to support Undo
   const [history, setHistory] = useState<Partial<GameState>[]>([]);
   const [undoUsed, setUndoUsed] = useState(false); // Track if undo has been used this turn
-  const [showStrategySuggestions, setShowStrategySuggestions] = useState(true);
 
   const [rankings, setRankings] = useState<Ranking[]>([]);
   const [playerName, setPlayerName] = useState('');
@@ -406,7 +405,13 @@ const App: React.FC = () => {
 
   const selectStrategy = (strat: StrategyType) => {
     saveToHistory();
-    setGameState(prev => ({ ...prev, activeStrategy: strat, message: `Strategy: ${strat?.replace('-', ' ')}.` }));
+    // Toggle: if clicking same strategy, turn it off
+    const newStrategy = gameState.activeStrategy === strat ? null : strat;
+    setGameState(prev => ({
+      ...prev,
+      activeStrategy: newStrategy,
+      message: newStrategy ? `Strategy: ${newStrategy.replace('-', ' ')}.` : 'Strategy cleared.'
+    }));
   };
 
   const strategyHighlights = getStrategyHighlights(gameState.players, gameState.activeStrategy);
@@ -489,7 +494,7 @@ const App: React.FC = () => {
 
   const getPhaseText = (phase: string) => {
     switch (phase) {
-      case 'off-ball': return 'Support Movement';
+      case 'off-ball': return 'OFF-BALL MOVEMENT';
       case 'ball-carrier': return 'Ball-Carrier Action';
       case 'executing': return 'Finish Choice';
       case 'passing': return 'Passing Lane';
@@ -554,7 +559,7 @@ const App: React.FC = () => {
                 validMoves={activeValidMoves}
                 activeStrategy={gameState.activeStrategy}
                 phase={gameState.phase}
-                showStrategySuggestions={showStrategySuggestions}
+                showStrategySuggestions={gameState.activeStrategy !== null}
               />
 
               {/* Score/Game Over Banner */}
@@ -607,21 +612,10 @@ const App: React.FC = () => {
             </div>
 
             {gameState.status === 'playing' && (
-              <div className="flex flex-col gap-2">
-                <div className="grid grid-cols-3 gap-2">
-                  <button onClick={() => selectStrategy('pick-and-roll')} className={`py-2 rounded-xl text-[8px] font-black uppercase transition-all border ${gameState.activeStrategy === 'pick-and-roll' ? 'bg-orange-600 border-orange-400 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}>Pick & Roll</button>
-                  <button onClick={() => selectStrategy('floor-spacing')} className={`py-2 rounded-xl text-[8px] font-black uppercase transition-all border ${gameState.activeStrategy === 'floor-spacing' ? 'bg-orange-600 border-orange-400 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}>Spacing</button>
-                  <button onClick={() => selectStrategy('backdoor-cut')} className={`py-2 rounded-xl text-[8px] font-black uppercase transition-all border ${gameState.activeStrategy === 'backdoor-cut' ? 'bg-orange-600 border-orange-400 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}>Backdoor</button>
-                </div>
-                <div className="flex justify-end">
-                   <button 
-                    onClick={() => setShowStrategySuggestions(!showStrategySuggestions)} 
-                    className={`text-[8px] font-black uppercase flex items-center gap-1.5 px-3 py-1 rounded-lg border transition-all ${showStrategySuggestions ? 'text-blue-400 border-blue-900 bg-blue-950/30' : 'text-zinc-600 border-zinc-800 bg-zinc-900'}`}
-                  >
-                    <i className={`fa-solid ${showStrategySuggestions ? 'fa-eye' : 'fa-eye-slash'}`}></i>
-                    Visual Guides: {showStrategySuggestions ? 'ON' : 'OFF'}
-                  </button>
-                </div>
+              <div className="grid grid-cols-3 gap-2">
+                <button onClick={() => selectStrategy('pick-and-roll')} className={`py-2 rounded-xl text-[8px] font-black uppercase transition-all border ${gameState.activeStrategy === 'pick-and-roll' ? 'bg-orange-600 border-orange-400 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}>Pick & Roll</button>
+                <button onClick={() => selectStrategy('floor-spacing')} className={`py-2 rounded-xl text-[8px] font-black uppercase transition-all border ${gameState.activeStrategy === 'floor-spacing' ? 'bg-orange-600 border-orange-400 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}>Spacing</button>
+                <button onClick={() => selectStrategy('backdoor-cut')} className={`py-2 rounded-xl text-[8px] font-black uppercase transition-all border ${gameState.activeStrategy === 'backdoor-cut' ? 'bg-orange-600 border-orange-400 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}>Backdoor</button>
               </div>
             )}
 
