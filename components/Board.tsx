@@ -105,7 +105,7 @@ const Board: React.FC<BoardProps> = ({
           ${isValidTarget ? 'after:content-[""] after:w-3 after:h-3 after:bg-white/40 after:rounded-full after:z-10 after:absolute after:inset-auto after:block animate-pulse' : ''}
         `}
       >
-        {isRow1 && phase === 'off-ball' && x === 4 && (
+        {!is3DMode && isRow1 && phase === 'off-ball' && x === 4 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
             <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-[11px] font-black px-3 py-1 rounded-lg shadow-[0_0_20px_rgba(251,191,36,0.6)] border-2 border-yellow-300 animate-pulse uppercase tracking-tight whitespace-nowrap">
               PHASE: MOVE OFF-BALL PLAYERS
@@ -113,7 +113,7 @@ const Board: React.FC<BoardProps> = ({
           </div>
         )}
 
-        {isRow1 && phase === 'ball-carrier' && x === 4 && (
+        {!is3DMode && isRow1 && phase === 'ball-carrier' && x === 4 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
             <div className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-[11px] font-black px-3 py-1 rounded-lg shadow-[0_0_20px_rgba(59,130,246,0.6)] border-2 border-blue-300 animate-pulse uppercase tracking-tight whitespace-nowrap">
               PHASE: MOVE BALL HOLDER
@@ -121,7 +121,7 @@ const Board: React.FC<BoardProps> = ({
           </div>
         )}
 
-        {isRow1 && x === 0 && (
+        {!is3DMode && isRow1 && x === 0 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
             <div className="bg-zinc-800 text-white text-[7px] font-black px-2 py-1 rounded-lg border border-zinc-700 uppercase text-center leading-tight">
               TURN<br />{turnCount + 1}/{maxTurns}
@@ -129,7 +129,7 @@ const Board: React.FC<BoardProps> = ({
           </div>
         )}
 
-        {isRow1 && x === 1 && (
+        {!is3DMode && isRow1 && x === 1 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
             <div className="flex gap-0.5 px-1">
               {[...Array(maxTurns)].map((_, i) => (
@@ -139,7 +139,7 @@ const Board: React.FC<BoardProps> = ({
           </div>
         )}
 
-        {isRow1 && x === 7 && (
+        {!is3DMode && isRow1 && x === 7 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
             <div className="bg-zinc-800 text-orange-400 text-[7px] font-black px-2 py-1 rounded-lg border border-zinc-700 uppercase text-center leading-tight">
               STREAK<br />{streak}
@@ -147,7 +147,7 @@ const Board: React.FC<BoardProps> = ({
           </div>
         )}
 
-        {isRow1 && x === 8 && (
+        {!is3DMode && isRow1 && x === 8 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
             <div className="bg-zinc-800 text-orange-400 text-[7px] font-black px-2 py-1 rounded-lg border border-zinc-700 uppercase text-center leading-tight">
               SCORE<br />{score}
@@ -197,7 +197,14 @@ const Board: React.FC<BoardProps> = ({
                 : 'linear-gradient(to bottom, #dc2626 0%, #b91c1c 50%, #991b1b 100%)'
             } : {}}
           >
-            {player.role || player.name}
+            {is3DMode ? (
+              <div className="flex flex-col items-center justify-center">
+                <i className="fa-solid fa-person text-[14px]"></i>
+                <div className="text-[6px] mt-0.5">{player.role}</div>
+              </div>
+            ) : (
+              player.role || player.name
+            )}
             
             {player.hasBall && (
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-orange-600 rounded-full border border-white flex items-center justify-center text-[8px] text-white shadow-md animate-bounce z-30">
@@ -216,8 +223,52 @@ const Board: React.FC<BoardProps> = ({
 
   const axisLabelStyle = "flex items-center justify-center text-[8px] font-black text-zinc-500 uppercase";
 
+  // Render info displays for 3D mode (above court)
+  const renderInfoDisplays3D = () => (
+    <div className="flex items-center justify-between w-full px-2 mb-2">
+      {/* Turn info */}
+      <div className="flex items-center gap-2">
+        <div className="bg-zinc-800 text-white text-[7px] font-black px-2 py-1 rounded-lg border border-zinc-700 uppercase text-center leading-tight">
+          TURN<br />{turnCount + 1}/{maxTurns}
+        </div>
+        <div className="flex gap-0.5 px-1">
+          {[...Array(maxTurns)].map((_, i) => (
+            <div key={i} className={`w-2 h-2 rounded-full ${i < turnCount ? 'bg-zinc-600' : 'bg-red-600 shadow-[0_0_4px_rgba(220,38,38,0.4)]'}`} />
+          ))}
+        </div>
+      </div>
+
+      {/* Phase indicator */}
+      <div className="flex-1 flex items-center justify-center px-4">
+        {phase === 'off-ball' && (
+          <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-[11px] font-black px-3 py-1 rounded-lg shadow-[0_0_20px_rgba(251,191,36,0.6)] border-2 border-yellow-300 animate-pulse uppercase tracking-tight whitespace-nowrap">
+            PHASE: MOVE OFF-BALL PLAYERS
+          </div>
+        )}
+        {phase === 'ball-carrier' && (
+          <div className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-[11px] font-black px-3 py-1 rounded-lg shadow-[0_0_20px_rgba(59,130,246,0.6)] border-2 border-blue-300 animate-pulse uppercase tracking-tight whitespace-nowrap">
+            PHASE: MOVE BALL HOLDER
+          </div>
+        )}
+      </div>
+
+      {/* Streak and Score */}
+      <div className="flex items-center gap-2">
+        <div className="bg-zinc-800 text-orange-400 text-[7px] font-black px-2 py-1 rounded-lg border border-zinc-700 uppercase text-center leading-tight">
+          STREAK<br />{streak}
+        </div>
+        <div className="bg-zinc-800 text-orange-400 text-[7px] font-black px-2 py-1 rounded-lg border border-zinc-700 uppercase text-center leading-tight">
+          SCORE<br />{score}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="flex flex-col gap-1 w-full max-w-[470px] mx-auto" style={is3DMode ? { perspective: '1200px' } : {}}>
+      {/* Info displays above court in 3D mode */}
+      {is3DMode && renderInfoDisplays3D()}
+
       <div className="flex gap-1 w-full" style={is3DMode ? { transformStyle: 'preserve-3d', transform: 'rotateX(45deg) scale(0.9)' } : {}}>
         {/* Y-axis labels */}
         <div className="flex flex-col w-4 py-1">
