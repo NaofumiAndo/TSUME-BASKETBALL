@@ -532,6 +532,22 @@ const App: React.FC = () => {
           </div>
         ) : (
           <>
+            {/* Phase Explanation Box */}
+            <div className="w-full max-w-[470px] mx-auto mb-2 bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2">
+              <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-wide mb-1">Basics:</div>
+              <div className="text-[10px] text-zinc-300 leading-relaxed">
+                {gameState.phase === 'off-ball' && (
+                  <span><span className="text-yellow-400 font-black">OFF-BALL:</span> Select and position all 4 off-ball players (without the ball)</span>
+                )}
+                {gameState.phase === 'ball-carrier' && (
+                  <span><span className="text-blue-400 font-black">BALL HOLDER:</span> Select and move your ball holder to a strategic position</span>
+                )}
+                {(gameState.phase === 'executing' || gameState.phase === 'passing') && (
+                  <span><span className="text-emerald-400 font-black">PASS/SHOOT:</span> Choose to shoot from scoring positions or pass to a teammate</span>
+                )}
+              </div>
+            </div>
+
             {/* Phase Progress Indicator */}
             <div className="w-full max-w-[470px] mx-auto mb-2 flex items-center justify-center gap-2">
               <div className={`px-3 py-1.5 rounded-lg font-black text-[9px] uppercase tracking-wider transition-all ${gameState.phase === 'off-ball' ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-[0_0_15px_rgba(251,191,36,0.5)] scale-105' : 'bg-zinc-800 text-zinc-500 border border-zinc-700'}`}>
@@ -641,12 +657,54 @@ const App: React.FC = () => {
                   Finalize Ball Holder Position
                 </button>
               )}
-              {gameState.phase === 'executing' && gameState.status === 'playing' && (
-                <div className="flex gap-2">
-                  <button onClick={handleShoot} className="flex-1 bg-gradient-to-r from-orange-500 to-red-600 text-white font-black py-3 rounded-xl uppercase text-sm shadow-lg hover:brightness-110 transition-all">Shoot</button>
-                  <button onClick={() => { saveToHistory(); setGameState(p => ({ ...p, phase: 'passing' })); }} className="flex-1 bg-zinc-800 text-white font-black py-3 rounded-xl uppercase text-sm border border-zinc-700 hover:bg-zinc-700 transition-all">Pass</button>
-                </div>
-              )}
+              {gameState.phase === 'executing' && gameState.status === 'playing' && (() => {
+                const ballCarrier = gameState.players.find(p => p.hasBall);
+                const shootResult = ballCarrier ? canScore(ballCarrier, gameState.players) : { success: false, reason: "No ball" };
+                const canPassNow = ballCarrier ? gameState.players.some(p =>
+                  p.team === 'offense' &&
+                  p.id !== ballCarrier.id &&
+                  canPassToTeammate(ballCarrier, p, gameState.players)
+                ) : false;
+
+                return (
+                  <div className="flex flex-col gap-2">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={shootResult.success ? handleShoot : undefined}
+                        disabled={!shootResult.success}
+                        className={`flex-1 font-black py-3 rounded-xl uppercase text-sm shadow-lg transition-all ${
+                          shootResult.success
+                            ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white hover:brightness-110 cursor-pointer'
+                            : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-50'
+                        }`}
+                      >
+                        Shoot
+                      </button>
+                      <button
+                        onClick={canPassNow ? () => { saveToHistory(); setGameState(p => ({ ...p, phase: 'passing' })); } : undefined}
+                        disabled={!canPassNow}
+                        className={`flex-1 font-black py-3 rounded-xl uppercase text-sm border transition-all ${
+                          canPassNow
+                            ? 'bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700 cursor-pointer'
+                            : 'bg-zinc-900 text-zinc-600 border-zinc-800 cursor-not-allowed opacity-50'
+                        }`}
+                      >
+                        Pass
+                      </button>
+                    </div>
+                    {!shootResult.success && (
+                      <div className="text-xs text-red-400 text-center font-bold">
+                        ❌ Shoot: {shootResult.reason || "Cannot shoot"}
+                      </div>
+                    )}
+                    {!canPassNow && (
+                      <div className="text-xs text-red-400 text-center font-bold">
+                        ❌ Pass: No passable teammates
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
               {gameState.phase === 'passing' && (
                 <div className="text-center py-2 bg-zinc-900 border border-yellow-500/30 rounded-xl animate-pulse text-yellow-500 font-black uppercase text-[10px]">Choose Target for Pass</div>
               )}

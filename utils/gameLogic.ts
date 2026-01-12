@@ -99,21 +99,8 @@ export const canPassToTeammate = (from: Player, to: Player, players: Player[]) =
     return false;
   }
 
-  // For adjacent passes, check if diagonal pass is blocked by orthogonal defenders
+  // For adjacent passes, only block if defender at target (already checked above)
   if (isAdjacent(from.pos, to.pos)) {
-    const dx = to.pos.x - from.pos.x;
-    const dy = to.pos.y - from.pos.y;
-
-    // If diagonal adjacent pass, check both orthogonal positions
-    if (dx !== 0 && dy !== 0) {
-      const pos1 = { x: from.pos.x + dx, y: from.pos.y }; // Horizontal first
-      const pos2 = { x: from.pos.x, y: from.pos.y + dy }; // Vertical first
-
-      // Block if either orthogonal position has a defender
-      if (players.some(p => p.team === 'defense' && (isPosEqual(p.pos, pos1) || isPosEqual(p.pos, pos2)))) {
-        return false;
-      }
-    }
     return true;
   }
 

@@ -154,8 +154,15 @@ const Board: React.FC<BoardProps> = ({
         )}
 
         {isBasket && (
-          <div className="absolute inset-0 flex items-center justify-center text-red-600 animate-pulse z-10 bg-black/10">
-            <i className="fa-solid fa-basketball fa-2xl"></i>
+          <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/10">
+            <div className="relative">
+              {/* Basketball rim */}
+              <div className="w-10 h-10 rounded-full border-4 border-red-600 bg-red-500/20 flex items-center justify-center animate-pulse">
+                <div className="text-[8px] font-black text-white uppercase tracking-tighter">GOAL</div>
+              </div>
+              {/* Net effect */}
+              <div className="absolute top-8 left-1/2 -translate-x-1/2 w-8 h-2 bg-gradient-to-b from-red-400/40 to-transparent rounded-b-full"></div>
+            </div>
           </div>
         )}
 
