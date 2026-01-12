@@ -175,47 +175,177 @@ const Board: React.FC<BoardProps> = ({
         )}
         
         {player && (
-          <div
-            className={`
-              relative flex items-center justify-center text-[10px] font-black z-20
-              ${is3DMode ? 'w-8 h-12' : 'w-9 h-9'}
-              ${is3DMode ? 'rounded-t-full' : 'rounded-full'}
-              ${player.team === 'offense' ? 'bg-blue-700 text-white' : 'bg-red-600 text-white'}
-              ${player.hasBall ? 'ring-2 ring-orange-300 scale-105 shadow-[0_0_15px_rgba(253,224,71,0.6)]' : ''}
-              ${hasMoved && player.team === 'offense' ? 'opacity-40' : 'opacity-100'}
-              ${isScreened ? 'ring-2 ring-white scale-95 shadow-[0_0_10px_rgba(255,255,255,0.4)]' : ''}
-              ${isSuggestedMover && !isActive ? 'ring-4 ring-white animate-pulse shadow-[0_0_20px_rgba(255,255,255,0.6)]' : ''}
-              ${isPassTarget ? 'ring-4 ring-emerald-400 animate-pulse shadow-[0_0_15px_rgba(52,211,153,0.8)]' : ''}
-              transition-all duration-300
-            `}
-            style={is3DMode ? {
-              transformStyle: 'preserve-3d',
-              transform: 'translateZ(20px)',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-              background: player.team === 'offense'
-                ? 'linear-gradient(to bottom, #1d4ed8 0%, #1e40af 50%, #1e3a8a 100%)'
-                : 'linear-gradient(to bottom, #dc2626 0%, #b91c1c 50%, #991b1b 100%)'
-            } : {}}
-          >
+          <>
             {is3DMode ? (
-              <div className="flex flex-col items-center justify-center">
-                <i className="fa-solid fa-person text-[14px]"></i>
-                <div className="text-[6px] mt-0.5">{player.role}</div>
+              // High-quality isometric 3D player
+              <div
+                className={`
+                  relative z-20 transition-all duration-300
+                  ${hasMoved && player.team === 'offense' ? 'opacity-40' : 'opacity-100'}
+                `}
+                style={{
+                  transformStyle: 'preserve-3d',
+                  transform: 'translateZ(30px)',
+                }}
+              >
+                {/* Drop shadow on floor */}
+                <div
+                  className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-2 bg-black/40 rounded-full blur-sm"
+                  style={{ transform: 'translateZ(-30px) scale(1.1)' }}
+                />
+
+                {/* Player figure container */}
+                <div className={`relative flex flex-col items-center ${isActive ? 'scale-110' : ''} transition-transform`}>
+                  {/* Head */}
+                  <div
+                    className={`w-5 h-5 rounded-full relative z-10 border-2 ${player.team === 'offense' ? 'border-blue-300' : 'border-red-300'}`}
+                    style={{
+                      background: player.team === 'offense'
+                        ? 'radial-gradient(circle at 30% 30%, #60a5fa, #3b82f6 40%, #1d4ed8 70%, #1e3a8a)'
+                        : 'radial-gradient(circle at 30% 30%, #fca5a5, #ef4444 40%, #dc2626 70%, #991b1b)',
+                      boxShadow: player.team === 'offense'
+                        ? '0 2px 8px rgba(59, 130, 246, 0.6), inset -2px -2px 4px rgba(0, 0, 0, 0.3), inset 2px 2px 4px rgba(147, 197, 253, 0.4)'
+                        : '0 2px 8px rgba(239, 68, 68, 0.6), inset -2px -2px 4px rgba(0, 0, 0, 0.3), inset 2px 2px 4px rgba(252, 165, 165, 0.4)'
+                    }}
+                  />
+
+                  {/* Body/Torso */}
+                  <div
+                    className={`w-6 h-8 -mt-1 relative z-5 border-2 ${player.team === 'offense' ? 'border-blue-400' : 'border-red-400'}`}
+                    style={{
+                      borderRadius: '30% 30% 40% 40% / 20% 20% 60% 60%',
+                      background: player.team === 'offense'
+                        ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 30%, #1d4ed8 60%, #1e3a8a 100%)'
+                        : 'linear-gradient(135deg, #ef4444 0%, #dc2626 30%, #b91c1c 60%, #991b1b 100%)',
+                      boxShadow: player.team === 'offense'
+                        ? '0 4px 12px rgba(29, 78, 216, 0.7), inset -3px -3px 6px rgba(0, 0, 0, 0.4), inset 3px 3px 6px rgba(96, 165, 246, 0.3)'
+                        : '0 4px 12px rgba(185, 28, 28, 0.7), inset -3px -3px 6px rgba(0, 0, 0, 0.4), inset 3px 3px 6px rgba(248, 113, 113, 0.3)'
+                    }}
+                  >
+                    {/* Jersey number/role */}
+                    <div className="absolute inset-0 flex items-center justify-center text-[7px] font-black text-white drop-shadow-md" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
+                      {player.role}
+                    </div>
+
+                    {/* Rim lighting on right edge */}
+                    <div
+                      className="absolute -right-0.5 top-1 bottom-1 w-1 rounded-full opacity-60"
+                      style={{
+                        background: player.team === 'offense'
+                          ? 'linear-gradient(to bottom, rgba(147, 197, 253, 0.8), rgba(96, 165, 246, 0.4))'
+                          : 'linear-gradient(to bottom, rgba(252, 165, 165, 0.8), rgba(248, 113, 113, 0.4))'
+                      }}
+                    />
+                  </div>
+
+                  {/* Arms */}
+                  <div className="absolute top-5 left-0 right-0 flex justify-between px-0.5">
+                    {/* Left arm */}
+                    <div
+                      className={`w-1.5 h-4 rounded-full ${player.team === 'offense' ? 'bg-blue-600' : 'bg-red-600'}`}
+                      style={{
+                        transform: 'rotate(-15deg)',
+                        background: player.team === 'offense'
+                          ? 'linear-gradient(to bottom, #2563eb, #1e3a8a)'
+                          : 'linear-gradient(to bottom, #dc2626, #7f1d1d)',
+                        boxShadow: 'inset -1px 0 2px rgba(0,0,0,0.4)'
+                      }}
+                    />
+                    {/* Right arm */}
+                    <div
+                      className={`w-1.5 h-4 rounded-full ${player.team === 'offense' ? 'bg-blue-600' : 'bg-red-600'}`}
+                      style={{
+                        transform: 'rotate(15deg)',
+                        background: player.team === 'offense'
+                          ? 'linear-gradient(to bottom, #2563eb, #1e3a8a)'
+                          : 'linear-gradient(to bottom, #dc2626, #7f1d1d)',
+                        boxShadow: 'inset 1px 0 2px rgba(255,255,255,0.2)'
+                      }}
+                    />
+                  </div>
+
+                  {/* Legs */}
+                  <div className="flex gap-0.5 -mt-0.5">
+                    <div
+                      className="w-2 h-4 rounded-b-lg"
+                      style={{
+                        background: player.team === 'offense'
+                          ? 'linear-gradient(to bottom, #1e40af 0%, #1e3a8a 50%, #172554 100%)'
+                          : 'linear-gradient(to bottom, #b91c1c 0%, #991b1b 50%, #7f1d1d 100%)',
+                        boxShadow: 'inset -1px -1px 3px rgba(0,0,0,0.5), inset 1px 1px 2px rgba(255,255,255,0.1)'
+                      }}
+                    />
+                    <div
+                      className="w-2 h-4 rounded-b-lg"
+                      style={{
+                        background: player.team === 'offense'
+                          ? 'linear-gradient(to bottom, #1e40af 0%, #1e3a8a 50%, #172554 100%)'
+                          : 'linear-gradient(to bottom, #b91c1c 0%, #991b1b 50%, #7f1d1d 100%)',
+                        boxShadow: 'inset 1px -1px 3px rgba(0,0,0,0.5), inset -1px 1px 2px rgba(255,255,255,0.15)'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Active player ring */}
+                {isActive && (
+                  <div className="absolute inset-0 rounded-full border-4 border-yellow-400 animate-pulse" style={{ width: '120%', height: '120%', left: '-10%', top: '-10%' }} />
+                )}
+
+                {/* Pass target ring */}
+                {isPassTarget && (
+                  <div className="absolute inset-0 rounded-full border-4 border-emerald-400 animate-pulse shadow-[0_0_20px_rgba(52,211,153,0.8)]" style={{ width: '130%', height: '130%', left: '-15%', top: '-15%' }} />
+                )}
+
+                {/* Suggested mover ring */}
+                {isSuggestedMover && !isActive && (
+                  <div className="absolute inset-0 rounded-full border-4 border-white animate-pulse shadow-[0_0_25px_rgba(255,255,255,0.8)]" style={{ width: '130%', height: '130%', left: '-15%', top: '-15%' }} />
+                )}
+
+                {/* Screened indicator */}
+                {isScreened && (
+                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-white text-black text-[6px] font-black px-1.5 py-0.5 rounded-full border-2 border-black shadow-lg uppercase tracking-tighter z-30 whitespace-nowrap">
+                    Screened
+                  </div>
+                )}
+
+                {/* Basketball indicator */}
+                {player.hasBall && (
+                  <div className="absolute -right-2 top-0 w-4 h-4 bg-orange-600 rounded-full border-2 border-white flex items-center justify-center text-[8px] text-white shadow-lg animate-bounce z-30" style={{ background: 'radial-gradient(circle at 30% 30%, #fb923c, #ea580c)' }}>
+                    <i className="fa-solid fa-basketball"></i>
+                  </div>
+                )}
               </div>
             ) : (
-              player.role || player.name
-            )}
-            
-            {player.hasBall && (
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-orange-600 rounded-full border border-white flex items-center justify-center text-[8px] text-white shadow-md animate-bounce z-30">
-                <i className="fa-solid fa-basketball"></i>
+              // 2D mode - original flat design
+              <div
+                className={`
+                  relative flex items-center justify-center text-[10px] font-black z-20
+                  w-9 h-9 rounded-full
+                  ${player.team === 'offense' ? 'bg-blue-700 text-white' : 'bg-red-600 text-white'}
+                  ${player.hasBall ? 'ring-2 ring-orange-300 scale-105 shadow-[0_0_15px_rgba(253,224,71,0.6)]' : ''}
+                  ${hasMoved && player.team === 'offense' ? 'opacity-40' : 'opacity-100'}
+                  ${isScreened ? 'ring-2 ring-white scale-95 shadow-[0_0_10px_rgba(255,255,255,0.4)]' : ''}
+                  ${isSuggestedMover && !isActive ? 'ring-4 ring-white animate-pulse shadow-[0_0_20px_rgba(255,255,255,0.6)]' : ''}
+                  ${isPassTarget ? 'ring-4 ring-emerald-400 animate-pulse shadow-[0_0_15px_rgba(52,211,153,0.8)]' : ''}
+                  ${isActive ? 'ring-4 ring-yellow-400 ring-inset' : ''}
+                  transition-all duration-300
+                `}
+              >
+                {player.role || player.name}
+
+                {player.hasBall && (
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-orange-600 rounded-full border border-white flex items-center justify-center text-[8px] text-white shadow-md animate-bounce z-30">
+                    <i className="fa-solid fa-basketball"></i>
+                  </div>
+                )}
+
+                {isScreened && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-white text-black text-[7px] font-black px-1.5 py-0.5 rounded-full border border-black shadow-sm uppercase tracking-tighter z-30 whitespace-nowrap">Screened</div>
+                )}
               </div>
             )}
-
-            {isScreened && (
-               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-white text-black text-[7px] font-black px-1.5 py-0.5 rounded-full border border-black shadow-sm uppercase tracking-tighter z-30 whitespace-nowrap">Screened</div>
-            )}
-          </div>
+          </>
         )}
       </div>
     );
