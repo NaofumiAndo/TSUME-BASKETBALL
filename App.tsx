@@ -554,6 +554,8 @@ const App: React.FC = () => {
                 activeStrategy={gameState.activeStrategy}
                 phase={gameState.phase}
                 showStrategySuggestions={gameState.activeStrategy !== null}
+                streak={gameState.streak}
+                score={gameState.score}
               />
 
               {/* Score/Game Over Banner */}
