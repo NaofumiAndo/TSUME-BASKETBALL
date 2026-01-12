@@ -180,22 +180,28 @@ const Board: React.FC<BoardProps> = ({
               // High-quality isometric 3D player
               <div
                 className={`
-                  relative z-20 transition-all duration-300
+                  absolute inset-0 flex items-center justify-center z-20 transition-all duration-300
                   ${hasMoved && player.team === 'offense' ? 'opacity-40' : 'opacity-100'}
                 `}
                 style={{
                   transformStyle: 'preserve-3d',
-                  transform: 'translateZ(30px)',
                 }}
               >
-                {/* Drop shadow on floor */}
                 <div
-                  className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-2 bg-black/40 rounded-full blur-sm"
-                  style={{ transform: 'translateZ(-30px) scale(1.1)' }}
-                />
+                  className="relative"
+                  style={{
+                    transformStyle: 'preserve-3d',
+                    transform: 'translateZ(30px)',
+                  }}
+                >
+                  {/* Drop shadow on floor */}
+                  <div
+                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-2 bg-black/40 rounded-full blur-sm"
+                    style={{ transform: 'translateZ(-30px) scale(1.1)' }}
+                  />
 
-                {/* Player figure container */}
-                <div className={`relative flex flex-col items-center ${isActive ? 'scale-110' : ''} transition-transform`}>
+                  {/* Player figure container */}
+                  <div className={`relative flex flex-col items-center ${isActive ? 'scale-110' : ''} transition-transform`}>
                   {/* Head */}
                   <div
                     className={`w-5 h-5 rounded-full relative z-10 border-2 ${player.team === 'offense' ? 'border-blue-300' : 'border-red-300'}`}
@@ -302,9 +308,9 @@ const Board: React.FC<BoardProps> = ({
                   <div className="absolute inset-0 rounded-full border-4 border-white animate-pulse shadow-[0_0_25px_rgba(255,255,255,0.8)]" style={{ width: '130%', height: '130%', left: '-15%', top: '-15%' }} />
                 )}
 
-                {/* Screened indicator */}
+                {/* Screened indicator - positioned on lower body */}
                 {isScreened && (
-                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-white text-black text-[6px] font-black px-1.5 py-0.5 rounded-full border-2 border-black shadow-lg uppercase tracking-tighter z-30 whitespace-nowrap">
+                  <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-white text-black text-[6px] font-black px-1.5 py-0.5 rounded-full border-2 border-black shadow-lg uppercase tracking-tighter z-30 whitespace-nowrap">
                     Screened
                   </div>
                 )}
@@ -315,6 +321,7 @@ const Board: React.FC<BoardProps> = ({
                     <i className="fa-solid fa-basketball"></i>
                   </div>
                 )}
+                </div>
               </div>
             ) : (
               // 2D mode - original flat design
@@ -395,11 +402,15 @@ const Board: React.FC<BoardProps> = ({
   );
 
   return (
-    <div className="flex flex-col gap-1 w-full max-w-[470px] mx-auto" style={is3DMode ? { perspective: '1200px' } : {}}>
+    <div className={`flex flex-col w-full max-w-[470px] mx-auto ${is3DMode ? 'gap-0' : 'gap-1'}`} style={is3DMode ? { perspective: '1200px' } : {}}>
       {/* Info displays above court in 3D mode */}
-      {is3DMode && renderInfoDisplays3D()}
+      {is3DMode && (
+        <div className="relative z-30 mb-[-20px]">
+          {renderInfoDisplays3D()}
+        </div>
+      )}
 
-      <div className="flex gap-1 w-full" style={is3DMode ? { transformStyle: 'preserve-3d', transform: 'rotateX(45deg) scale(0.9)' } : {}}>
+      <div className={`flex gap-1 w-full ${is3DMode ? 'relative z-20' : ''}`} style={is3DMode ? { transformStyle: 'preserve-3d', transform: 'rotateX(45deg) scale(0.9)' } : {}}>
         {/* Y-axis labels */}
         <div className="flex flex-col w-4 py-1">
           {Array.from({ length: 9 }).map((_, i) => (
