@@ -200,8 +200,40 @@ export const aiOptimalWall = (players: Player[], streak: number = 0): Player[] =
   const offense = nextPlayers.filter(p => p.team === 'offense');
   const ballCarrier = offense.find(p => p.hasBall)!;
 
-  // After streak 5, activate advanced defensive AI: prioritize blocking scoring positions
-  const advancedDefense = streak >= 5;
+  // Streak 10+: Reassign defenders to closest offensive players for tighter defense
+  if (streak >= 10) {
+    const availableOffense = [...offense];
+    const assignments: { defender: Player; offense: Player }[] = [];
+
+    // For each defender, find their closest offensive player
+    defenders.forEach(defender => {
+      let closestOffense = availableOffense[0];
+      let closestDist = getDistance(defender.pos, closestOffense.pos);
+
+      for (const off of availableOffense) {
+        const dist = getDistance(defender.pos, off.pos);
+        if (dist < closestDist) {
+          closestDist = dist;
+          closestOffense = off;
+        }
+      }
+
+      assignments.push({ defender, offense: closestOffense });
+      // Remove assigned offense from available pool
+      const index = availableOffense.indexOf(closestOffense);
+      if (index > -1) availableOffense.splice(index, 1);
+    });
+
+    // Apply the proximity-based assignments
+    assignments.forEach(({ defender, offense }) => {
+      defender.assignedTo = offense.id;
+      defender.role = offense.role;
+    });
+  }
+
+  // Priority 1 activates at streak 3+, Priority 2 activates at streak 5+
+  const usePriority1 = streak >= 3;
+  const usePriority2 = streak >= 5;
 
   defenders.forEach((defender) => {
     // A defender is screened when sharing a side (orthogonal) with ANY offensive player.
@@ -228,36 +260,55 @@ export const aiOptimalWall = (players: Player[], streak: number = 0): Player[] =
 
     let targetPos = defender.pos;
 
-    // ADVANCED DEFENSE (Streak 5+): Prioritize blocking scoring positions
-    if (advancedDefense) {
+    // PRIORITY 1 (Streak 3+): Block basket if ball carrier is close (within 4 squares)
+    if (usePriority1) {
       const distToBasket = getDistance(ballCarrier.pos, BASKET_POS);
-
-      // Priority 1: Block basket if ball carrier is close (within 4 squares)
       if (distToBasket <= 4 && moves.some(m => isPosEqual(m, BASKET_POS))) {
         targetPos = BASKET_POS;
         defender.pos = targetPos;
         return;
       }
+    }
 
-      // Priority 2: Block 3PT shots by being adjacent to arc positions near ball carrier
-      const nearbyArcPositions = THREE_POINT_LINE.filter(arcPos =>
-        getDistance(ballCarrier.pos, arcPos) <= 3
-      );
+    // PRIORITY 2 (Streak 5+): Block 3PT arc positions
+    if (usePriority2) {
+      // Find arc positions that are:
+      // 1. NOT occupied by any offense player
+      // 2. NOT adjacent to any defense player
+      const validArcPositions = THREE_POINT_LINE.filter(arcPos => {
+        // Check not occupied by offense
+        const occupiedByOffense = offense.some(o => isPosEqual(o.pos, arcPos));
+        if (occupiedByOffense) return false;
 
-      for (const arcPos of nearbyArcPositions) {
-        // Check if we can move adjacent to this arc position
-        const adjacentToArc = moves.find(m =>
-          getDistance(m, arcPos) <= 1 && !isPosEqual(m, arcPos)
-        );
-        if (adjacentToArc) {
-          targetPos = adjacentToArc;
-          defender.pos = targetPos;
-          return;
+        // Check not adjacent to any defender
+        const adjacentToDefender = defenders.some(d => isAdjacent(d.pos, arcPos));
+        if (adjacentToDefender) return false;
+
+        return true;
+      });
+
+      // Find moves that would place this defender adjacent to valid arc positions
+      const movesAdjacentToArc: Position[] = [];
+      for (const move of moves) {
+        if (isPosEqual(move, defender.pos)) continue; // Skip staying in place
+        for (const arcPos of validArcPositions) {
+          if (isAdjacent(move, arcPos)) {
+            movesAdjacentToArc.push(move);
+            break; // Only add this move once even if adjacent to multiple arcs
+          }
         }
+      }
+
+      // If we have valid moves adjacent to arc, randomly pick one
+      if (movesAdjacentToArc.length > 0) {
+        const randomIndex = Math.floor(Math.random() * movesAdjacentToArc.length);
+        targetPos = movesAdjacentToArc[randomIndex];
+        defender.pos = targetPos;
+        return;
       }
     }
 
-    // Standard defensive positioning (used always, or as fallback after streak 5)
+    // Standard defensive positioning (used for streak 1-2, or as fallback)
     const assigned = offense.find(o => o.id === defender.assignedTo);
     if (defender.assignedTo === ballCarrier.id) {
       const ideal = { x: Math.round((ballCarrier.pos.x + BASKET_POS.x) / 2), y: Math.round((ballCarrier.pos.y + BASKET_POS.y) / 2) };
