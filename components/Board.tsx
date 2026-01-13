@@ -164,12 +164,12 @@ const Board: React.FC<BoardProps> = ({
                   className="relative"
                   style={{
                     transformStyle: 'preserve-3d',
-                    transform: 'translateZ(25px) translateY(-30%)',
+                    transform: 'translateZ(12px) translateY(-15%)',
                   }}
                 >
                   {/* Post - standing from center */}
                   <div
-                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-10 rounded-t"
+                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-8 rounded-t"
                     style={{
                       background: 'linear-gradient(to right, #52525b 0%, #71717a 50%, #52525b 100%)',
                       boxShadow: 'inset -1px 0 2px rgba(0,0,0,0.5), inset 1px 0 2px rgba(255,255,255,0.2), 2px 0 4px rgba(0,0,0,0.3)'
@@ -178,43 +178,56 @@ const Board: React.FC<BoardProps> = ({
 
                   {/* Backboard */}
                   <div
-                    className="absolute bottom-8 left-1/2 -translate-x-1/2 w-12 h-8 rounded border-2 border-zinc-700"
+                    className="absolute bottom-6 left-1/2 -translate-x-1/2 w-10 h-6 rounded border-2 border-zinc-700"
                     style={{
                       background: 'linear-gradient(135deg, #fafafa 0%, #e4e4e7 50%, #d4d4d8 100%)',
                       boxShadow: '0 4px 8px rgba(0,0,0,0.4), inset -2px -2px 4px rgba(0,0,0,0.1), inset 2px 2px 4px rgba(255,255,255,0.8)'
                     }}
                   >
                     {/* Inner square */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-4 border border-red-600/60"></div>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-3 border border-red-600/60"></div>
                   </div>
 
                   {/* Rim support */}
                   <div
-                    className="absolute bottom-8 left-1/2 -translate-x-1/2 w-4 h-1 rounded"
+                    className="absolute bottom-6 left-1/2 -translate-x-1/2 w-3 h-0.5 rounded"
                     style={{
                       background: 'linear-gradient(to bottom, #ef4444, #b91c1c)',
                       boxShadow: '0 2px 4px rgba(0,0,0,0.4)'
                     }}
                   />
 
-                  {/* Rim */}
+                  {/* 3D Basketball Rim - Ellipse for perspective */}
                   <div
-                    className="absolute bottom-6 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full border-3"
+                    className="absolute bottom-4 left-1/2 -translate-x-1/2"
                     style={{
-                      borderWidth: '3px',
-                      borderColor: '#dc2626',
-                      background: 'radial-gradient(circle at 30% 30%, rgba(239, 68, 68, 0.3), transparent 60%)',
-                      boxShadow: '0 4px 8px rgba(0,0,0,0.5), inset -2px -2px 3px rgba(0,0,0,0.4), inset 2px 2px 3px rgba(252, 165, 165, 0.3)'
+                      width: '28px',
+                      height: '16px',
+                      borderRadius: '50%',
+                      border: '3px solid #dc2626',
+                      background: 'transparent',
+                      boxShadow: '0 3px 6px rgba(0,0,0,0.6), inset 0 -2px 4px rgba(0,0,0,0.4), inset 0 2px 2px rgba(252, 165, 165, 0.3)',
+                      transform: 'rotateX(60deg)'
                     }}
                   >
-                    <div className="absolute inset-0 flex items-center justify-center text-[6px] font-black text-red-600 uppercase" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
-                      GOAL
-                    </div>
+                    {/* Inner ring for depth */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: '20px',
+                        height: '10px',
+                        borderRadius: '50%',
+                        border: '2px solid rgba(185, 28, 28, 0.5)',
+                      }}
+                    />
                   </div>
 
                   {/* Net */}
                   <div
-                    className="absolute bottom-3 left-1/2 -translate-x-1/2 w-6 h-4"
+                    className="absolute bottom-1 left-1/2 -translate-x-1/2 w-5 h-3"
                     style={{
                       background: 'linear-gradient(to bottom, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.2) 50%, transparent 100%)',
                       clipPath: 'polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%)',
@@ -263,20 +276,20 @@ const Board: React.FC<BoardProps> = ({
                   className="relative"
                   style={{
                     transformStyle: 'preserve-3d',
-                    transform: 'translateZ(30px) translateY(-25%)',
+                    transform: 'translateZ(15px) translateY(-10%)',
                   }}
                 >
                   {/* Drop shadow on floor */}
                   <div
-                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-2 bg-black/40 rounded-full blur-sm"
-                    style={{ transform: 'translateZ(-30px) scale(1.1)' }}
+                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-1.5 bg-black/40 rounded-full blur-sm"
+                    style={{ transform: 'translateZ(-15px) scale(1.1)' }}
                   />
 
                   {/* Player figure container */}
                   <div className={`relative flex flex-col items-center ${isActive ? 'scale-110' : ''} transition-transform`}>
                   {/* Head */}
                   <div
-                    className={`w-4 h-4 rounded-full relative z-10 border-2 ${
+                    className={`w-3 h-3 rounded-full relative z-10 border-2 ${
                       isActive
                         ? 'border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.8)] animate-pulse'
                         : isSuggestedMover
@@ -303,7 +316,7 @@ const Board: React.FC<BoardProps> = ({
 
                   {/* Body/Torso */}
                   <div
-                    className={`w-5 h-6 -mt-1 relative z-5 border-2 ${
+                    className={`w-4 h-5 -mt-0.5 relative z-5 border-2 ${
                       isActive
                         ? 'border-yellow-400 animate-pulse'
                         : isSuggestedMover
@@ -329,7 +342,7 @@ const Board: React.FC<BoardProps> = ({
                     }}
                   >
                     {/* Position name on torso */}
-                    <div className="absolute inset-0 flex items-center justify-center text-[7px] font-black text-white drop-shadow-md" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
+                    <div className="absolute inset-0 flex items-center justify-center text-[6px] font-black text-white drop-shadow-md" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
                       {player.role}
                     </div>
 
@@ -345,10 +358,10 @@ const Board: React.FC<BoardProps> = ({
                   </div>
 
                   {/* Arms - positioned lower and more to the sides */}
-                  <div className="absolute top-4 left-0 right-0 flex justify-between" style={{ paddingLeft: '-2px', paddingRight: '-2px' }}>
+                  <div className="absolute top-3 left-0 right-0 flex justify-between" style={{ paddingLeft: '-2px', paddingRight: '-2px' }}>
                     {/* Left arm */}
                     <div
-                      className={`w-1 h-3 rounded-full ${
+                      className={`w-1 h-2.5 rounded-full ${
                         isActive ? 'ring-1 ring-yellow-400' : isSuggestedMover ? 'ring-1 ring-white' : isPassTarget ? 'ring-1 ring-emerald-400' : ''
                       } ${player.team === 'offense' ? 'bg-blue-600' : 'bg-red-600'}`}
                       style={{
@@ -367,7 +380,7 @@ const Board: React.FC<BoardProps> = ({
                     />
                     {/* Right arm */}
                     <div
-                      className={`w-1 h-3 rounded-full ${
+                      className={`w-1 h-2.5 rounded-full ${
                         isActive ? 'ring-1 ring-yellow-400' : isSuggestedMover ? 'ring-1 ring-white' : isPassTarget ? 'ring-1 ring-emerald-400' : ''
                       } ${player.team === 'offense' ? 'bg-blue-600' : 'bg-red-600'}`}
                       style={{
@@ -389,7 +402,7 @@ const Board: React.FC<BoardProps> = ({
                   {/* Legs */}
                   <div className="flex gap-0.5 -mt-0.5">
                     <div
-                      className={`w-1.5 h-3 rounded-b-lg ${
+                      className={`w-1.5 h-2.5 rounded-b-lg ${
                         isActive ? 'ring-1 ring-yellow-400' : isSuggestedMover ? 'ring-1 ring-white' : isPassTarget ? 'ring-1 ring-emerald-400' : ''
                       }`}
                       style={{
@@ -406,7 +419,7 @@ const Board: React.FC<BoardProps> = ({
                       }}
                     />
                     <div
-                      className={`w-1.5 h-3 rounded-b-lg ${
+                      className={`w-1.5 h-2.5 rounded-b-lg ${
                         isActive ? 'ring-1 ring-yellow-400' : isSuggestedMover ? 'ring-1 ring-white' : isPassTarget ? 'ring-1 ring-emerald-400' : ''
                       }`}
                       style={{
@@ -430,14 +443,14 @@ const Board: React.FC<BoardProps> = ({
 
                 {/* Screened indicator - positioned on lower body */}
                 {isScreened && (
-                  <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-white text-black text-[6px] font-black px-1.5 py-0.5 rounded-full border-2 border-black shadow-lg uppercase tracking-tighter z-30 whitespace-nowrap">
+                  <div className="absolute top-5 left-1/2 -translate-x-1/2 bg-white text-black text-[6px] font-black px-1.5 py-0.5 rounded-full border-2 border-black shadow-lg uppercase tracking-tighter z-30 whitespace-nowrap">
                     Screened
                   </div>
                 )}
 
                 {/* Basketball indicator */}
                 {player.hasBall && (
-                  <div className="absolute -right-2 top-0 w-4 h-4 bg-orange-600 rounded-full border-2 border-white flex items-center justify-center text-[8px] text-white shadow-lg animate-bounce z-30" style={{ background: 'radial-gradient(circle at 30% 30%, #fb923c, #ea580c)' }}>
+                  <div className="absolute -right-1.5 top-0 w-3 h-3 bg-orange-600 rounded-full border-2 border-white flex items-center justify-center text-[7px] text-white shadow-lg animate-bounce z-30" style={{ background: 'radial-gradient(circle at 30% 30%, #fb923c, #ea580c)' }}>
                     <i className="fa-solid fa-basketball"></i>
                   </div>
                 )}
