@@ -97,7 +97,7 @@ const Board: React.FC<BoardProps> = ({
         key={`${x}-${y}`}
         onClick={() => onSquareClick(pos)}
         className={`
-          relative w-full h-full border border-black/5 flex items-center justify-center cursor-pointer
+          relative w-full h-full border border-[rgba(92,64,51,0.4)] flex items-center justify-center cursor-pointer
           transition-all duration-200
           ${bgColor} ${arcStyle}
           ${isStrategy ? 'bg-blue-400/40 ring-2 ring-blue-400/50 ring-inset z-10' : ''}
@@ -156,16 +156,87 @@ const Board: React.FC<BoardProps> = ({
         )}
 
         {isBasket && (
-          <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/10">
-            <div className="relative">
-              {/* Basketball rim */}
-              <div className="w-10 h-10 rounded-full border-4 border-red-600 bg-red-500/20 flex items-center justify-center animate-pulse">
-                <div className="text-[8px] font-black text-white uppercase tracking-tighter">GOAL</div>
+          <>
+            {is3DMode ? (
+              // 3D Basketball Goal
+              <div className="absolute inset-0 flex items-center justify-center z-10">
+                <div
+                  className="relative"
+                  style={{
+                    transformStyle: 'preserve-3d',
+                    transform: 'translateZ(25px) translateY(-50%)',
+                  }}
+                >
+                  {/* Post - standing from center */}
+                  <div
+                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-16 rounded-t"
+                    style={{
+                      background: 'linear-gradient(to right, #52525b 0%, #71717a 50%, #52525b 100%)',
+                      boxShadow: 'inset -1px 0 2px rgba(0,0,0,0.5), inset 1px 0 2px rgba(255,255,255,0.2), 2px 0 4px rgba(0,0,0,0.3)'
+                    }}
+                  />
+
+                  {/* Backboard */}
+                  <div
+                    className="absolute bottom-12 left-1/2 -translate-x-1/2 w-12 h-8 rounded border-2 border-zinc-700"
+                    style={{
+                      background: 'linear-gradient(135deg, #fafafa 0%, #e4e4e7 50%, #d4d4d8 100%)',
+                      boxShadow: '0 4px 8px rgba(0,0,0,0.4), inset -2px -2px 4px rgba(0,0,0,0.1), inset 2px 2px 4px rgba(255,255,255,0.8)'
+                    }}
+                  >
+                    {/* Inner square */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-4 border border-red-600/60"></div>
+                  </div>
+
+                  {/* Rim support */}
+                  <div
+                    className="absolute bottom-12 left-1/2 -translate-x-1/2 w-4 h-1 rounded"
+                    style={{
+                      background: 'linear-gradient(to bottom, #ef4444, #b91c1c)',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.4)'
+                    }}
+                  />
+
+                  {/* Rim */}
+                  <div
+                    className="absolute bottom-10 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full border-3"
+                    style={{
+                      borderWidth: '3px',
+                      borderColor: '#dc2626',
+                      background: 'radial-gradient(circle at 30% 30%, rgba(239, 68, 68, 0.3), transparent 60%)',
+                      boxShadow: '0 4px 8px rgba(0,0,0,0.5), inset -2px -2px 3px rgba(0,0,0,0.4), inset 2px 2px 3px rgba(252, 165, 165, 0.3)'
+                    }}
+                  >
+                    <div className="absolute inset-0 flex items-center justify-center text-[6px] font-black text-red-600 uppercase" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+                      GOAL
+                    </div>
+                  </div>
+
+                  {/* Net */}
+                  <div
+                    className="absolute bottom-6 left-1/2 -translate-x-1/2 w-6 h-4"
+                    style={{
+                      background: 'linear-gradient(to bottom, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.2) 50%, transparent 100%)',
+                      clipPath: 'polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%)',
+                      opacity: 0.6
+                    }}
+                  />
+                </div>
               </div>
-              {/* Net effect */}
-              <div className="absolute top-8 left-1/2 -translate-x-1/2 w-8 h-2 bg-gradient-to-b from-red-400/40 to-transparent rounded-b-full"></div>
-            </div>
-          </div>
+            ) : (
+              // 2D Basketball Goal
+              <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/10">
+                <div className="relative">
+                  {/* Basketball rim */}
+                  <div className="w-10 h-10 rounded-full border-4 border-red-600 bg-red-500/20 flex items-center justify-center animate-pulse">
+                    <div className="text-[8px] font-black text-white uppercase tracking-tighter">GOAL</div>
+                  </div>
+                  {/* Net effect */}
+                  <div className="absolute top-8 left-1/2 -translate-x-1/2 w-8 h-2 bg-gradient-to-b from-red-400/40 to-transparent rounded-b-full"></div>
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {isStrategy && !player && (
@@ -180,11 +251,12 @@ const Board: React.FC<BoardProps> = ({
               // High-quality isometric 3D player
               <div
                 className={`
-                  absolute inset-0 flex items-center justify-center z-20 transition-all duration-300
+                  absolute inset-0 flex items-center justify-center transition-all duration-300
                   ${hasMoved && player.team === 'offense' ? 'opacity-40' : 'opacity-100'}
                 `}
                 style={{
                   transformStyle: 'preserve-3d',
+                  zIndex: 20 + player.pos.y,
                 }}
               >
                 <div
@@ -204,12 +276,18 @@ const Board: React.FC<BoardProps> = ({
                   <div className={`relative flex flex-col items-center ${isActive ? 'scale-110' : ''} transition-transform`}>
                   {/* Head */}
                   <div
-                    className={`w-5 h-5 rounded-full relative z-10 border-2 ${player.team === 'offense' ? 'border-blue-300' : 'border-red-300'}`}
+                    className={`w-5 h-5 rounded-full relative z-10 border-2 ${
+                      isActive
+                        ? 'border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.8)]'
+                        : player.team === 'offense' ? 'border-blue-300' : 'border-red-300'
+                    }`}
                     style={{
                       background: player.team === 'offense'
                         ? 'radial-gradient(circle at 30% 30%, #60a5fa, #3b82f6 40%, #1d4ed8 70%, #1e3a8a)'
                         : 'radial-gradient(circle at 30% 30%, #fca5a5, #ef4444 40%, #dc2626 70%, #991b1b)',
-                      boxShadow: player.team === 'offense'
+                      boxShadow: isActive
+                        ? '0 0 20px rgba(250, 204, 21, 0.9), inset -2px -2px 4px rgba(0, 0, 0, 0.3), inset 2px 2px 4px rgba(254, 240, 138, 0.5)'
+                        : player.team === 'offense'
                         ? '0 2px 8px rgba(59, 130, 246, 0.6), inset -2px -2px 4px rgba(0, 0, 0, 0.3), inset 2px 2px 4px rgba(147, 197, 253, 0.4)'
                         : '0 2px 8px rgba(239, 68, 68, 0.6), inset -2px -2px 4px rgba(0, 0, 0, 0.3), inset 2px 2px 4px rgba(252, 165, 165, 0.4)'
                     }}
@@ -217,20 +295,49 @@ const Board: React.FC<BoardProps> = ({
 
                   {/* Body/Torso */}
                   <div
-                    className={`w-6 h-8 -mt-1 relative z-5 border-2 ${player.team === 'offense' ? 'border-blue-400' : 'border-red-400'}`}
+                    className={`w-6 h-8 -mt-1 relative z-5 border-2 ${
+                      isActive
+                        ? 'border-yellow-400'
+                        : player.team === 'offense' ? 'border-blue-400' : 'border-red-400'
+                    }`}
                     style={{
                       borderRadius: '30% 30% 40% 40% / 20% 20% 60% 60%',
                       background: player.team === 'offense'
                         ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 30%, #1d4ed8 60%, #1e3a8a 100%)'
                         : 'linear-gradient(135deg, #ef4444 0%, #dc2626 30%, #b91c1c 60%, #991b1b 100%)',
-                      boxShadow: player.team === 'offense'
+                      boxShadow: isActive
+                        ? '0 0 20px rgba(250, 204, 21, 0.9), inset -3px -3px 6px rgba(0, 0, 0, 0.4), inset 3px 3px 6px rgba(254, 240, 138, 0.4)'
+                        : player.team === 'offense'
                         ? '0 4px 12px rgba(29, 78, 216, 0.7), inset -3px -3px 6px rgba(0, 0, 0, 0.4), inset 3px 3px 6px rgba(96, 165, 246, 0.3)'
                         : '0 4px 12px rgba(185, 28, 28, 0.7), inset -3px -3px 6px rgba(0, 0, 0, 0.4), inset 3px 3px 6px rgba(248, 113, 113, 0.3)'
                     }}
                   >
-                    {/* Jersey number/role */}
-                    <div className="absolute inset-0 flex items-center justify-center text-[7px] font-black text-white drop-shadow-md" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
-                      {player.role}
+                    {/* Jersey overlay */}
+                    <div
+                      className="absolute inset-x-1 top-1 bottom-2 rounded-sm border border-white/30"
+                      style={{
+                        background: player.team === 'offense'
+                          ? 'linear-gradient(to bottom, rgba(37, 99, 235, 0.4) 0%, rgba(29, 78, 216, 0.6) 50%, rgba(30, 58, 138, 0.8) 100%)'
+                          : 'linear-gradient(to bottom, rgba(220, 38, 38, 0.4) 0%, rgba(185, 28, 28, 0.6) 50%, rgba(153, 27, 27, 0.8) 100%)',
+                        boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.2), inset 0 -1px 2px rgba(0,0,0,0.3)'
+                      }}
+                    >
+                      {/* V-neck */}
+                      <div
+                        className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-1.5 border-l border-r border-white/20"
+                        style={{
+                          clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)'
+                        }}
+                      />
+
+                      {/* Jersey number/role */}
+                      <div className="absolute inset-0 flex items-center justify-center text-[7px] font-black text-white drop-shadow-lg" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9), 0 0 8px rgba(255,255,255,0.3)' }}>
+                        {player.role}
+                      </div>
+
+                      {/* Side stripes */}
+                      <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-white/20"></div>
+                      <div className="absolute right-0 top-0 bottom-0 w-0.5 bg-white/20"></div>
                     </div>
 
                     {/* Rim lighting on right edge */}
@@ -248,24 +355,28 @@ const Board: React.FC<BoardProps> = ({
                   <div className="absolute top-5 left-0 right-0 flex justify-between px-0.5">
                     {/* Left arm */}
                     <div
-                      className={`w-1.5 h-4 rounded-full ${player.team === 'offense' ? 'bg-blue-600' : 'bg-red-600'}`}
+                      className={`w-1.5 h-4 rounded-full ${isActive ? 'ring-1 ring-yellow-400' : ''} ${player.team === 'offense' ? 'bg-blue-600' : 'bg-red-600'}`}
                       style={{
                         transform: 'rotate(-15deg)',
                         background: player.team === 'offense'
                           ? 'linear-gradient(to bottom, #2563eb, #1e3a8a)'
                           : 'linear-gradient(to bottom, #dc2626, #7f1d1d)',
-                        boxShadow: 'inset -1px 0 2px rgba(0,0,0,0.4)'
+                        boxShadow: isActive
+                          ? '0 0 8px rgba(250, 204, 21, 0.8), inset -1px 0 2px rgba(0,0,0,0.4)'
+                          : 'inset -1px 0 2px rgba(0,0,0,0.4)'
                       }}
                     />
                     {/* Right arm */}
                     <div
-                      className={`w-1.5 h-4 rounded-full ${player.team === 'offense' ? 'bg-blue-600' : 'bg-red-600'}`}
+                      className={`w-1.5 h-4 rounded-full ${isActive ? 'ring-1 ring-yellow-400' : ''} ${player.team === 'offense' ? 'bg-blue-600' : 'bg-red-600'}`}
                       style={{
                         transform: 'rotate(15deg)',
                         background: player.team === 'offense'
                           ? 'linear-gradient(to bottom, #2563eb, #1e3a8a)'
                           : 'linear-gradient(to bottom, #dc2626, #7f1d1d)',
-                        boxShadow: 'inset 1px 0 2px rgba(255,255,255,0.2)'
+                        boxShadow: isActive
+                          ? '0 0 8px rgba(250, 204, 21, 0.8), inset 1px 0 2px rgba(255,255,255,0.2)'
+                          : 'inset 1px 0 2px rgba(255,255,255,0.2)'
                       }}
                     />
                   </div>
@@ -273,30 +384,29 @@ const Board: React.FC<BoardProps> = ({
                   {/* Legs */}
                   <div className="flex gap-0.5 -mt-0.5">
                     <div
-                      className="w-2 h-4 rounded-b-lg"
+                      className={`w-2 h-4 rounded-b-lg ${isActive ? 'ring-1 ring-yellow-400' : ''}`}
                       style={{
                         background: player.team === 'offense'
                           ? 'linear-gradient(to bottom, #1e40af 0%, #1e3a8a 50%, #172554 100%)'
                           : 'linear-gradient(to bottom, #b91c1c 0%, #991b1b 50%, #7f1d1d 100%)',
-                        boxShadow: 'inset -1px -1px 3px rgba(0,0,0,0.5), inset 1px 1px 2px rgba(255,255,255,0.1)'
+                        boxShadow: isActive
+                          ? '0 0 8px rgba(250, 204, 21, 0.8), inset -1px -1px 3px rgba(0,0,0,0.5), inset 1px 1px 2px rgba(255,255,255,0.1)'
+                          : 'inset -1px -1px 3px rgba(0,0,0,0.5), inset 1px 1px 2px rgba(255,255,255,0.1)'
                       }}
                     />
                     <div
-                      className="w-2 h-4 rounded-b-lg"
+                      className={`w-2 h-4 rounded-b-lg ${isActive ? 'ring-1 ring-yellow-400' : ''}`}
                       style={{
                         background: player.team === 'offense'
                           ? 'linear-gradient(to bottom, #1e40af 0%, #1e3a8a 50%, #172554 100%)'
                           : 'linear-gradient(to bottom, #b91c1c 0%, #991b1b 50%, #7f1d1d 100%)',
-                        boxShadow: 'inset 1px -1px 3px rgba(0,0,0,0.5), inset -1px 1px 2px rgba(255,255,255,0.15)'
+                        boxShadow: isActive
+                          ? '0 0 8px rgba(250, 204, 21, 0.8), inset 1px -1px 3px rgba(0,0,0,0.5), inset -1px 1px 2px rgba(255,255,255,0.15)'
+                          : 'inset 1px -1px 3px rgba(0,0,0,0.5), inset -1px 1px 2px rgba(255,255,255,0.15)'
                       }}
                     />
                   </div>
                 </div>
-
-                {/* Active player ring */}
-                {isActive && (
-                  <div className="absolute inset-0 rounded-full border-4 border-yellow-400 animate-pulse" style={{ width: '120%', height: '120%', left: '-10%', top: '-10%' }} />
-                )}
 
                 {/* Pass target ring */}
                 {isPassTarget && (
@@ -362,39 +472,39 @@ const Board: React.FC<BoardProps> = ({
 
   // Render info displays for 3D mode (above court)
   const renderInfoDisplays3D = () => (
-    <div className="flex items-center justify-between w-full px-2 mb-2">
+    <div className="flex items-center justify-between w-full px-1 mb-2">
       {/* Turn info */}
-      <div className="flex items-center gap-2">
-        <div className="bg-zinc-800 text-white text-[7px] font-black px-2 py-1 rounded-lg border border-zinc-700 uppercase text-center leading-tight">
+      <div className="flex items-center gap-1">
+        <div className="bg-zinc-800 text-white text-[6px] font-black px-1.5 py-0.5 rounded border border-zinc-700 uppercase text-center leading-tight">
           TURN<br />{turnCount + 1}/{maxTurns}
         </div>
-        <div className="flex gap-0.5 px-1">
+        <div className="flex gap-0.5">
           {[...Array(maxTurns)].map((_, i) => (
-            <div key={i} className={`w-2 h-2 rounded-full ${i < turnCount ? 'bg-zinc-600' : 'bg-red-600 shadow-[0_0_4px_rgba(220,38,38,0.4)]'}`} />
+            <div key={i} className={`w-1.5 h-1.5 rounded-full ${i < turnCount ? 'bg-zinc-600' : 'bg-red-600 shadow-[0_0_4px_rgba(220,38,38,0.4)]'}`} />
           ))}
         </div>
       </div>
 
       {/* Phase indicator */}
-      <div className="flex-1 flex items-center justify-center px-4">
+      <div className="flex-1 flex items-center justify-center px-2">
         {phase === 'off-ball' && (
-          <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-[11px] font-black px-3 py-1 rounded-lg shadow-[0_0_20px_rgba(251,191,36,0.6)] border-2 border-yellow-300 animate-pulse uppercase tracking-tight whitespace-nowrap">
-            PHASE: MOVE OFF-BALL PLAYERS
+          <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-[9px] font-black px-2 py-0.5 rounded shadow-[0_0_15px_rgba(251,191,36,0.5)] border border-yellow-300 uppercase tracking-tight whitespace-nowrap">
+            PHASE: OFF-BALL
           </div>
         )}
         {phase === 'ball-carrier' && (
-          <div className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-[11px] font-black px-3 py-1 rounded-lg shadow-[0_0_20px_rgba(59,130,246,0.6)] border-2 border-blue-300 animate-pulse uppercase tracking-tight whitespace-nowrap">
-            PHASE: MOVE BALL HOLDER
+          <div className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-[9px] font-black px-2 py-0.5 rounded shadow-[0_0_15px_rgba(59,130,246,0.5)] border border-blue-300 uppercase tracking-tight whitespace-nowrap">
+            PHASE: BALL HOLDER
           </div>
         )}
       </div>
 
       {/* Streak and Score */}
-      <div className="flex items-center gap-2">
-        <div className="bg-zinc-800 text-orange-400 text-[7px] font-black px-2 py-1 rounded-lg border border-zinc-700 uppercase text-center leading-tight">
+      <div className="flex items-center gap-1">
+        <div className="bg-zinc-800 text-orange-400 text-[6px] font-black px-1.5 py-0.5 rounded border border-zinc-700 uppercase text-center leading-tight">
           STREAK<br />{streak}
         </div>
-        <div className="bg-zinc-800 text-orange-400 text-[7px] font-black px-2 py-1 rounded-lg border border-zinc-700 uppercase text-center leading-tight">
+        <div className="bg-zinc-800 text-orange-400 text-[6px] font-black px-1.5 py-0.5 rounded border border-zinc-700 uppercase text-center leading-tight">
           SCORE<br />{score}
         </div>
       </div>
@@ -405,7 +515,7 @@ const Board: React.FC<BoardProps> = ({
     <div className={`flex flex-col w-full max-w-[470px] mx-auto ${is3DMode ? 'gap-0' : 'gap-1'}`} style={is3DMode ? { perspective: '1200px' } : {}}>
       {/* Info displays above court in 3D mode */}
       {is3DMode && (
-        <div className="relative z-30 mb-[-20px]">
+        <div className="relative z-30 mb-[-10px]">
           {renderInfoDisplays3D()}
         </div>
       )}
@@ -431,7 +541,7 @@ const Board: React.FC<BoardProps> = ({
       </div>
 
       {/* X-axis labels */}
-      <div className="flex w-full pl-5">
+      <div className={`flex w-full pl-5 ${is3DMode ? 'relative z-30 mt-[-15px]' : ''}`}>
         <div className="flex-1 grid grid-cols-9 h-4">
           {Array.from({ length: 9 }).map((_, i) => (
             <div key={`x-${i}`} className={axisLabelStyle}>
