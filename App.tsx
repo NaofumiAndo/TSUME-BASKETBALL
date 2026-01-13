@@ -645,13 +645,6 @@ const App: React.FC = () => {
               )}
             </div>
 
-            {gameState.status === 'playing' && (
-              <div className={`grid grid-cols-3 gap-2 relative z-30 ${is3DMode ? '-mt-16' : ''}`}>
-                <button onClick={() => selectStrategy('pick-and-roll')} className={`py-2 rounded-xl text-[8px] font-black uppercase transition-all border ${gameState.activeStrategy === 'pick-and-roll' ? 'bg-orange-600 border-orange-400 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}>Pick & Roll</button>
-                <button onClick={() => selectStrategy('floor-spacing')} className={`py-2 rounded-xl text-[8px] font-black uppercase transition-all border ${gameState.activeStrategy === 'floor-spacing' ? 'bg-orange-600 border-orange-400 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}>Spacing</button>
-                <button onClick={() => selectStrategy('backdoor-cut')} className={`py-2 rounded-xl text-[8px] font-black uppercase transition-all border ${gameState.activeStrategy === 'backdoor-cut' ? 'bg-orange-600 border-orange-400 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}>Backdoor</button>
-              </div>
-            )}
 
             <div className="flex flex-col gap-2 w-full">
               {gameState.phase === 'off-ball' && gameState.status === 'playing' && (
