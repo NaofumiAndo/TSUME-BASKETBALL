@@ -519,7 +519,7 @@ const Board: React.FC<BoardProps> = ({
 
       {/* X-axis labels at top in 3D mode */}
       {is3DMode && (
-        <div className="flex gap-1 w-full relative z-30 mb-[-48px] mt-2" style={{ transform: 'scale(0.88)' }}>
+        <div className="flex gap-1 w-full relative z-30 mb-[-32px] mt-2" style={{ transform: 'scale(0.88)' }}>
           <div className="w-4"></div>
           <div className="flex-1 grid grid-cols-9 h-4">
             {Array.from({ length: 9 }).map((_, i) => (
@@ -531,7 +531,7 @@ const Board: React.FC<BoardProps> = ({
         </div>
       )}
 
-      <div className={`flex gap-1 w-full ${is3DMode ? 'relative z-20' : ''}`} style={is3DMode ? { transformStyle: 'preserve-3d', transform: 'rotateX(25deg) scale(0.95)' } : {}}>
+      <div className={`flex gap-1 w-full ${is3DMode ? 'relative z-20 mt-8' : ''}`} style={is3DMode ? { transformStyle: 'preserve-3d', transform: 'rotateX(25deg) scale(0.95)' } : {}}>
         {/* Y-axis labels */}
         <div className="flex flex-col w-4 py-1">
           {Array.from({ length: 9 }).map((_, i) => (
