@@ -276,7 +276,7 @@ const Board: React.FC<BoardProps> = ({
                   <div className={`relative flex flex-col items-center ${isActive ? 'scale-110' : ''} transition-transform`}>
                   {/* Head */}
                   <div
-                    className={`w-5 h-5 rounded-full relative z-10 border-2 ${
+                    className={`w-4 h-4 rounded-full relative z-10 border-2 ${
                       isActive
                         ? 'border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.8)] animate-pulse'
                         : isSuggestedMover
@@ -303,7 +303,7 @@ const Board: React.FC<BoardProps> = ({
 
                   {/* Body/Torso */}
                   <div
-                    className={`w-6 h-8 -mt-1 relative z-5 border-2 ${
+                    className={`w-5 h-6 -mt-1 relative z-5 border-2 ${
                       isActive
                         ? 'border-yellow-400 animate-pulse'
                         : isSuggestedMover
@@ -328,42 +328,9 @@ const Board: React.FC<BoardProps> = ({
                         : '0 4px 12px rgba(185, 28, 28, 0.7), inset -3px -3px 6px rgba(0, 0, 0, 0.4), inset 3px 3px 6px rgba(248, 113, 113, 0.3)'
                     }}
                   >
-                    {/* Jersey overlay */}
-                    <div
-                      className="absolute inset-x-0.5 top-0.5 bottom-1 rounded border-2"
-                      style={{
-                        background: player.team === 'offense'
-                          ? 'linear-gradient(to bottom, rgba(59, 130, 246, 0.9) 0%, rgba(37, 99, 235, 0.95) 50%, rgba(29, 78, 216, 1) 100%)'
-                          : 'linear-gradient(to bottom, rgba(239, 68, 68, 0.9) 0%, rgba(220, 38, 38, 0.95) 50%, rgba(185, 28, 28, 1) 100%)',
-                        borderColor: player.team === 'offense' ? 'rgba(147, 197, 253, 0.6)' : 'rgba(252, 165, 165, 0.6)',
-                        boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3)'
-                      }}
-                    >
-                      {/* V-neck */}
-                      <div
-                        className="absolute top-0 left-1/2 -translate-x-1/2 w-3 h-2 border-l-2 border-r-2 border-white/40"
-                        style={{
-                          clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)'
-                        }}
-                      />
-
-                      {/* Jersey number/role - prominent */}
-                      <div
-                        className="absolute inset-0 flex items-center justify-center text-[8px] font-black text-white"
-                        style={{
-                          textShadow: '0 0 4px rgba(0,0,0,1), 0 0 8px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,1), 0 0 12px rgba(255,255,255,0.4)',
-                          WebkitTextStroke: '0.5px rgba(0,0,0,0.5)'
-                        }}
-                      >
-                        {player.role}
-                      </div>
-
-                      {/* Side stripes - more prominent */}
-                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-r from-white/40 to-transparent"></div>
-                      <div className="absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-l from-white/40 to-transparent"></div>
-
-                      {/* Horizontal stripe */}
-                      <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-0.5 bg-white/20"></div>
+                    {/* Position name on torso */}
+                    <div className="absolute inset-0 flex items-center justify-center text-[7px] font-black text-white drop-shadow-md" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
+                      {player.role}
                     </div>
 
                     {/* Rim lighting on right edge */}
@@ -378,10 +345,10 @@ const Board: React.FC<BoardProps> = ({
                   </div>
 
                   {/* Arms - positioned lower and more to the sides */}
-                  <div className="absolute top-6 left-0 right-0 flex justify-between" style={{ paddingLeft: '-2px', paddingRight: '-2px' }}>
+                  <div className="absolute top-4 left-0 right-0 flex justify-between" style={{ paddingLeft: '-2px', paddingRight: '-2px' }}>
                     {/* Left arm */}
                     <div
-                      className={`w-1.5 h-5 rounded-full ${
+                      className={`w-1 h-3 rounded-full ${
                         isActive ? 'ring-1 ring-yellow-400' : isSuggestedMover ? 'ring-1 ring-white' : isPassTarget ? 'ring-1 ring-emerald-400' : ''
                       } ${player.team === 'offense' ? 'bg-blue-600' : 'bg-red-600'}`}
                       style={{
@@ -400,7 +367,7 @@ const Board: React.FC<BoardProps> = ({
                     />
                     {/* Right arm */}
                     <div
-                      className={`w-1.5 h-5 rounded-full ${
+                      className={`w-1 h-3 rounded-full ${
                         isActive ? 'ring-1 ring-yellow-400' : isSuggestedMover ? 'ring-1 ring-white' : isPassTarget ? 'ring-1 ring-emerald-400' : ''
                       } ${player.team === 'offense' ? 'bg-blue-600' : 'bg-red-600'}`}
                       style={{
@@ -422,7 +389,7 @@ const Board: React.FC<BoardProps> = ({
                   {/* Legs */}
                   <div className="flex gap-0.5 -mt-0.5">
                     <div
-                      className={`w-2 h-4 rounded-b-lg ${
+                      className={`w-1.5 h-3 rounded-b-lg ${
                         isActive ? 'ring-1 ring-yellow-400' : isSuggestedMover ? 'ring-1 ring-white' : isPassTarget ? 'ring-1 ring-emerald-400' : ''
                       }`}
                       style={{
@@ -439,7 +406,7 @@ const Board: React.FC<BoardProps> = ({
                       }}
                     />
                     <div
-                      className={`w-2 h-4 rounded-b-lg ${
+                      className={`w-1.5 h-3 rounded-b-lg ${
                         isActive ? 'ring-1 ring-yellow-400' : isSuggestedMover ? 'ring-1 ring-white' : isPassTarget ? 'ring-1 ring-emerald-400' : ''
                       }`}
                       style={{
@@ -558,14 +525,14 @@ const Board: React.FC<BoardProps> = ({
     <div className={`flex flex-col w-full max-w-[470px] mx-auto ${is3DMode ? 'gap-0' : 'gap-1'}`} style={is3DMode ? { perspective: '1200px' } : {}}>
       {/* Info displays above court in 3D mode */}
       {is3DMode && (
-        <div className="relative z-30 mb-[-15px]">
+        <div className="relative z-30 mb-[-22px]">
           {renderInfoDisplays3D()}
         </div>
       )}
 
       {/* X-axis labels at top in 3D mode */}
       {is3DMode && (
-        <div className="flex gap-1 w-full relative z-30 mb-[-18px] mt-2" style={{ transform: 'scale(0.88)' }}>
+        <div className="flex gap-1 w-full relative z-30 mb-[-24px] mt-2" style={{ transform: 'scale(0.88)' }}>
           <div className="w-4"></div>
           <div className="flex-1 grid grid-cols-9 h-4">
             {Array.from({ length: 9 }).map((_, i) => (
