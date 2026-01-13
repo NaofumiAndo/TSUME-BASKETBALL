@@ -565,7 +565,7 @@ const Board: React.FC<BoardProps> = ({
 
       {/* X-axis labels at top in 3D mode */}
       {is3DMode && (
-        <div className="flex gap-1 w-full relative z-30 mb-[-12px] mt-2" style={{ transform: 'scale(0.95)' }}>
+        <div className="flex gap-1 w-full relative z-30 mb-[-18px] mt-2" style={{ transform: 'scale(0.88)' }}>
           <div className="w-4"></div>
           <div className="flex-1 grid grid-cols-9 h-4">
             {Array.from({ length: 9 }).map((_, i) => (
