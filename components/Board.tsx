@@ -159,79 +159,59 @@ const Board: React.FC<BoardProps> = ({
           <>
             {is3DMode ? (
               // 3D Basketball Goal
-              <div className="absolute inset-0 flex items-center justify-center z-10">
+              <div className="absolute inset-0 flex items-end justify-center z-10" style={{ paddingBottom: '0px' }}>
                 <div
                   className="relative"
                   style={{
                     transformStyle: 'preserve-3d',
-                    transform: 'translateZ(12px) translateY(-15%)',
+                    transform: 'translateZ(8px)',
                   }}
                 >
-                  {/* Post - standing from center */}
+                  {/* Backboard - at the back */}
                   <div
-                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-8 rounded-t"
-                    style={{
-                      background: 'linear-gradient(to right, #52525b 0%, #71717a 50%, #52525b 100%)',
-                      boxShadow: 'inset -1px 0 2px rgba(0,0,0,0.5), inset 1px 0 2px rgba(255,255,255,0.2), 2px 0 4px rgba(0,0,0,0.3)'
-                    }}
-                  />
-
-                  {/* Backboard */}
-                  <div
-                    className="absolute bottom-6 left-1/2 -translate-x-1/2 w-10 h-6 rounded border-2 border-zinc-700"
+                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-10 h-7 rounded border-2 border-zinc-700"
                     style={{
                       background: 'linear-gradient(135deg, #fafafa 0%, #e4e4e7 50%, #d4d4d8 100%)',
-                      boxShadow: '0 4px 8px rgba(0,0,0,0.4), inset -2px -2px 4px rgba(0,0,0,0.1), inset 2px 2px 4px rgba(255,255,255,0.8)'
+                      boxShadow: '0 4px 8px rgba(0,0,0,0.4), inset -2px -2px 4px rgba(0,0,0,0.1), inset 2px 2px 4px rgba(255,255,255,0.8)',
+                      transform: 'translateZ(-3px)'
                     }}
                   >
                     {/* Inner square */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-3 border border-red-600/60"></div>
+                    <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-5 h-3 border border-red-600/60"></div>
                   </div>
 
-                  {/* Rim support */}
+                  {/* Rim mounting bracket */}
                   <div
-                    className="absolute bottom-6 left-1/2 -translate-x-1/2 w-3 h-0.5 rounded"
+                    className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-4 h-1 rounded"
                     style={{
-                      background: 'linear-gradient(to bottom, #ef4444, #b91c1c)',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.4)'
+                      background: 'linear-gradient(to right, #a1a1aa, #d4d4d8, #a1a1aa)',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.5)',
+                      transform: 'translateZ(-1px)'
                     }}
                   />
 
-                  {/* 3D Basketball Rim - Ellipse for perspective */}
+                  {/* 3D Basketball Rim - horizontal ellipse at bottom */}
                   <div
-                    className="absolute bottom-4 left-1/2 -translate-x-1/2"
+                    className="absolute bottom-0 left-1/2 -translate-x-1/2"
                     style={{
-                      width: '28px',
-                      height: '16px',
+                      width: '24px',
+                      height: '8px',
                       borderRadius: '50%',
-                      border: '3px solid #dc2626',
+                      border: '2.5px solid #dc2626',
                       background: 'transparent',
-                      boxShadow: '0 3px 6px rgba(0,0,0,0.6), inset 0 -2px 4px rgba(0,0,0,0.4), inset 0 2px 2px rgba(252, 165, 165, 0.3)',
-                      transform: 'rotateX(60deg)'
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.7), inset 0 -1px 2px rgba(0,0,0,0.5), inset 0 1px 2px rgba(252, 165, 165, 0.4)',
+                      transform: 'rotateX(75deg) translateY(-2px)'
                     }}
-                  >
-                    {/* Inner ring for depth */}
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: '20px',
-                        height: '10px',
-                        borderRadius: '50%',
-                        border: '2px solid rgba(185, 28, 28, 0.5)',
-                      }}
-                    />
-                  </div>
+                  />
 
                   {/* Net */}
                   <div
-                    className="absolute bottom-1 left-1/2 -translate-x-1/2 w-5 h-3"
+                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-2"
                     style={{
-                      background: 'linear-gradient(to bottom, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.2) 50%, transparent 100%)',
-                      clipPath: 'polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%)',
-                      opacity: 0.6
+                      background: 'linear-gradient(to bottom, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.25) 50%, transparent 100%)',
+                      clipPath: 'polygon(25% 0%, 75% 0%, 100% 100%, 0% 100%)',
+                      opacity: 0.7,
+                      transform: 'translateY(1px)'
                     }}
                   />
                 </div>
@@ -545,7 +525,7 @@ const Board: React.FC<BoardProps> = ({
 
       {/* X-axis labels at top in 3D mode */}
       {is3DMode && (
-        <div className="flex gap-1 w-full relative z-30 mb-[-24px] mt-2" style={{ transform: 'scale(0.88)' }}>
+        <div className="flex gap-1 w-full relative z-30 mb-[-32px] mt-2" style={{ transform: 'scale(0.88)' }}>
           <div className="w-4"></div>
           <div className="flex-1 grid grid-cols-9 h-4">
             {Array.from({ length: 9 }).map((_, i) => (
