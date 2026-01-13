@@ -194,7 +194,7 @@ export const generateTacticalScenario = (): Player[] => {
   return players;
 };
 
-export const aiOptimalWall = (players: Player[], streak: number = 0): Player[] => {
+export const aiOptimalWall = (players: Player[], streak: number = 0, mode: import('../types').GameMode = 'streak-attack-lv1'): Player[] => {
   const nextPlayers = players.map(p => ({ ...p }));
   const defenders = nextPlayers.filter(p => p.team === 'defense');
   const offense = nextPlayers.filter(p => p.team === 'offense');
@@ -236,12 +236,11 @@ export const aiOptimalWall = (players: Player[], streak: number = 0): Player[] =
   const usePriority2 = streak >= 5;
 
   defenders.forEach((defender) => {
-    // A defender is screened when sharing a side (orthogonal) with ANY offensive player.
-    // This includes the ball carrier - screens don't break if you pass to the screener
-    const isScreened = offense.some(o => isOrthogonalAdjacent(o.pos, defender.pos));
+    // Find offensive players that are screening this defender (orthogonally adjacent)
+    const screeningPlayers = offense.filter(o => isOrthogonalAdjacent(o.pos, defender.pos));
 
-    // Screened defenders lose their ability to move.
-    if (isScreened) {
+    // Level 1: Screened defenders lose their ability to move completely
+    if (mode === 'streak-attack-lv1' && screeningPlayers.length > 0) {
       return;
     }
 
@@ -253,6 +252,13 @@ export const aiOptimalWall = (players: Player[], streak: number = 0): Player[] =
         const p = { x: defender.pos.x + x, y: defender.pos.y + y };
         // Block row 1 (y=0) and check bounds
         if (p.x >= 0 && p.x < GRID_SIZE && p.y > 0 && p.y < GRID_SIZE && !nextPlayers.find(pl => pl.id !== defender.id && isPosEqual(pl.pos, p))) {
+          // Level 2: Defenders cannot move into blocks adjacent to screening offensive players
+          if (mode === 'streak-attack-lv2' && screeningPlayers.length > 0) {
+            const blockedByScreen = screeningPlayers.some(screener => isAdjacent(p, screener.pos));
+            if (blockedByScreen) {
+              continue; // Skip this move
+            }
+          }
           moves.push(p);
         }
       }

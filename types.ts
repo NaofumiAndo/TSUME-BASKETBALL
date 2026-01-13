@@ -3,7 +3,7 @@ export type Team = 'offense' | 'defense';
 export type PlayerRole = 'PG' | 'SG' | 'SF' | 'PF' | 'C';
 export type TurnPhase = 'off-ball' | 'ball-carrier' | 'executing' | 'ai' | 'passing' | 'menu';
 export type StrategyType = 'pick-and-roll' | 'floor-spacing' | 'backdoor-cut' | null;
-export type GameMode = 'streak-attack' | 'time-attack';
+export type GameMode = 'streak-attack-lv1' | 'streak-attack-lv2' | 'time-attack';
 
 export interface Position {
   x: number;
