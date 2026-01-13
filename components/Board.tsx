@@ -496,20 +496,6 @@ const Board: React.FC<BoardProps> = ({
         </div>
       </div>
 
-      {/* Phase indicator */}
-      <div className="flex-1 flex items-center justify-center px-2">
-        {phase === 'off-ball' && (
-          <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-[9px] font-black px-2 py-0.5 rounded shadow-[0_0_15px_rgba(251,191,36,0.5)] border border-yellow-300 uppercase tracking-tight whitespace-nowrap">
-            PHASE: OFF-BALL
-          </div>
-        )}
-        {phase === 'ball-carrier' && (
-          <div className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-[9px] font-black px-2 py-0.5 rounded shadow-[0_0_15px_rgba(59,130,246,0.5)] border border-blue-300 uppercase tracking-tight whitespace-nowrap">
-            PHASE: BALL HOLDER
-          </div>
-        )}
-      </div>
-
       {/* Streak and Score */}
       <div className="flex items-center gap-1">
         <div className="bg-zinc-800 text-orange-400 text-[6px] font-black px-1.5 py-0.5 rounded border border-zinc-700 uppercase text-center leading-tight">
@@ -533,7 +519,7 @@ const Board: React.FC<BoardProps> = ({
 
       {/* X-axis labels at top in 3D mode */}
       {is3DMode && (
-        <div className="flex gap-1 w-full relative z-30 mb-[-42px] mt-2" style={{ transform: 'scale(0.88)' }}>
+        <div className="flex gap-1 w-full relative z-30 mb-[-48px] mt-2" style={{ transform: 'scale(0.88)' }}>
           <div className="w-4"></div>
           <div className="flex-1 grid grid-cols-9 h-4">
             {Array.from({ length: 9 }).map((_, i) => (
