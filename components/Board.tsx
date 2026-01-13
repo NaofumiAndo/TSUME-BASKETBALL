@@ -164,12 +164,12 @@ const Board: React.FC<BoardProps> = ({
                   className="relative"
                   style={{
                     transformStyle: 'preserve-3d',
-                    transform: 'translateZ(25px) translateY(-50%)',
+                    transform: 'translateZ(25px) translateY(-30%)',
                   }}
                 >
                   {/* Post - standing from center */}
                   <div
-                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-16 rounded-t"
+                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-10 rounded-t"
                     style={{
                       background: 'linear-gradient(to right, #52525b 0%, #71717a 50%, #52525b 100%)',
                       boxShadow: 'inset -1px 0 2px rgba(0,0,0,0.5), inset 1px 0 2px rgba(255,255,255,0.2), 2px 0 4px rgba(0,0,0,0.3)'
@@ -178,7 +178,7 @@ const Board: React.FC<BoardProps> = ({
 
                   {/* Backboard */}
                   <div
-                    className="absolute bottom-12 left-1/2 -translate-x-1/2 w-12 h-8 rounded border-2 border-zinc-700"
+                    className="absolute bottom-8 left-1/2 -translate-x-1/2 w-12 h-8 rounded border-2 border-zinc-700"
                     style={{
                       background: 'linear-gradient(135deg, #fafafa 0%, #e4e4e7 50%, #d4d4d8 100%)',
                       boxShadow: '0 4px 8px rgba(0,0,0,0.4), inset -2px -2px 4px rgba(0,0,0,0.1), inset 2px 2px 4px rgba(255,255,255,0.8)'
@@ -190,7 +190,7 @@ const Board: React.FC<BoardProps> = ({
 
                   {/* Rim support */}
                   <div
-                    className="absolute bottom-12 left-1/2 -translate-x-1/2 w-4 h-1 rounded"
+                    className="absolute bottom-8 left-1/2 -translate-x-1/2 w-4 h-1 rounded"
                     style={{
                       background: 'linear-gradient(to bottom, #ef4444, #b91c1c)',
                       boxShadow: '0 2px 4px rgba(0,0,0,0.4)'
@@ -199,7 +199,7 @@ const Board: React.FC<BoardProps> = ({
 
                   {/* Rim */}
                   <div
-                    className="absolute bottom-10 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full border-3"
+                    className="absolute bottom-6 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full border-3"
                     style={{
                       borderWidth: '3px',
                       borderColor: '#dc2626',
@@ -214,7 +214,7 @@ const Board: React.FC<BoardProps> = ({
 
                   {/* Net */}
                   <div
-                    className="absolute bottom-6 left-1/2 -translate-x-1/2 w-6 h-4"
+                    className="absolute bottom-3 left-1/2 -translate-x-1/2 w-6 h-4"
                     style={{
                       background: 'linear-gradient(to bottom, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.2) 50%, transparent 100%)',
                       clipPath: 'polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%)',
@@ -263,7 +263,7 @@ const Board: React.FC<BoardProps> = ({
                   className="relative"
                   style={{
                     transformStyle: 'preserve-3d',
-                    transform: 'translateZ(30px) translateY(-40%)',
+                    transform: 'translateZ(30px) translateY(-25%)',
                   }}
                 >
                   {/* Drop shadow on floor */}
@@ -558,14 +558,15 @@ const Board: React.FC<BoardProps> = ({
     <div className={`flex flex-col w-full max-w-[470px] mx-auto ${is3DMode ? 'gap-0' : 'gap-1'}`} style={is3DMode ? { perspective: '1200px' } : {}}>
       {/* Info displays above court in 3D mode */}
       {is3DMode && (
-        <div className="relative z-30 mb-[-25px]">
+        <div className="relative z-30 mb-[-15px]">
           {renderInfoDisplays3D()}
         </div>
       )}
 
       {/* X-axis labels at top in 3D mode */}
       {is3DMode && (
-        <div className="flex w-full pl-5 relative z-30 mb-[-10px]">
+        <div className="flex w-full relative z-30 mb-[-5px] mt-2">
+          <div className="w-4"></div>
           <div className="flex-1 grid grid-cols-9 h-4">
             {Array.from({ length: 9 }).map((_, i) => (
               <div key={`x-top-${i}`} className={axisLabelStyle}>
@@ -576,7 +577,7 @@ const Board: React.FC<BoardProps> = ({
         </div>
       )}
 
-      <div className={`flex gap-1 w-full ${is3DMode ? 'relative z-20' : ''}`} style={is3DMode ? { transformStyle: 'preserve-3d', transform: 'rotateX(45deg) scale(0.9)' } : {}}>
+      <div className={`flex gap-1 w-full ${is3DMode ? 'relative z-20' : ''}`} style={is3DMode ? { transformStyle: 'preserve-3d', transform: 'rotateX(25deg) scale(0.95)' } : {}}>
         {/* Y-axis labels */}
         <div className="flex flex-col w-4 py-1">
           {Array.from({ length: 9 }).map((_, i) => (
