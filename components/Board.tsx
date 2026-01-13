@@ -278,7 +278,11 @@ const Board: React.FC<BoardProps> = ({
                   <div
                     className={`w-5 h-5 rounded-full relative z-10 border-2 ${
                       isActive
-                        ? 'border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.8)]'
+                        ? 'border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.8)] animate-pulse'
+                        : isSuggestedMover
+                        ? 'border-white shadow-[0_0_15px_rgba(255,255,255,0.8)] animate-pulse'
+                        : isPassTarget
+                        ? 'border-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.8)] animate-pulse'
                         : player.team === 'offense' ? 'border-blue-300' : 'border-red-300'
                     }`}
                     style={{
@@ -287,6 +291,10 @@ const Board: React.FC<BoardProps> = ({
                         : 'radial-gradient(circle at 30% 30%, #fca5a5, #ef4444 40%, #dc2626 70%, #991b1b)',
                       boxShadow: isActive
                         ? '0 0 20px rgba(250, 204, 21, 0.9), inset -2px -2px 4px rgba(0, 0, 0, 0.3), inset 2px 2px 4px rgba(254, 240, 138, 0.5)'
+                        : isSuggestedMover
+                        ? '0 0 20px rgba(255, 255, 255, 0.9), inset -2px -2px 4px rgba(0, 0, 0, 0.3), inset 2px 2px 4px rgba(255, 255, 255, 0.5)'
+                        : isPassTarget
+                        ? '0 0 20px rgba(52, 211, 153, 0.9), inset -2px -2px 4px rgba(0, 0, 0, 0.3), inset 2px 2px 4px rgba(167, 243, 208, 0.5)'
                         : player.team === 'offense'
                         ? '0 2px 8px rgba(59, 130, 246, 0.6), inset -2px -2px 4px rgba(0, 0, 0, 0.3), inset 2px 2px 4px rgba(147, 197, 253, 0.4)'
                         : '0 2px 8px rgba(239, 68, 68, 0.6), inset -2px -2px 4px rgba(0, 0, 0, 0.3), inset 2px 2px 4px rgba(252, 165, 165, 0.4)'
@@ -297,7 +305,11 @@ const Board: React.FC<BoardProps> = ({
                   <div
                     className={`w-6 h-8 -mt-1 relative z-5 border-2 ${
                       isActive
-                        ? 'border-yellow-400'
+                        ? 'border-yellow-400 animate-pulse'
+                        : isSuggestedMover
+                        ? 'border-white animate-pulse'
+                        : isPassTarget
+                        ? 'border-emerald-400 animate-pulse'
                         : player.team === 'offense' ? 'border-blue-400' : 'border-red-400'
                     }`}
                     style={{
@@ -307,6 +319,10 @@ const Board: React.FC<BoardProps> = ({
                         : 'linear-gradient(135deg, #ef4444 0%, #dc2626 30%, #b91c1c 60%, #991b1b 100%)',
                       boxShadow: isActive
                         ? '0 0 20px rgba(250, 204, 21, 0.9), inset -3px -3px 6px rgba(0, 0, 0, 0.4), inset 3px 3px 6px rgba(254, 240, 138, 0.4)'
+                        : isSuggestedMover
+                        ? '0 0 20px rgba(255, 255, 255, 0.9), inset -3px -3px 6px rgba(0, 0, 0, 0.4), inset 3px 3px 6px rgba(255, 255, 255, 0.4)'
+                        : isPassTarget
+                        ? '0 0 20px rgba(52, 211, 153, 0.9), inset -3px -3px 6px rgba(0, 0, 0, 0.4), inset 3px 3px 6px rgba(167, 243, 208, 0.4)'
                         : player.team === 'offense'
                         ? '0 4px 12px rgba(29, 78, 216, 0.7), inset -3px -3px 6px rgba(0, 0, 0, 0.4), inset 3px 3px 6px rgba(96, 165, 246, 0.3)'
                         : '0 4px 12px rgba(185, 28, 28, 0.7), inset -3px -3px 6px rgba(0, 0, 0, 0.4), inset 3px 3px 6px rgba(248, 113, 113, 0.3)'
@@ -314,30 +330,40 @@ const Board: React.FC<BoardProps> = ({
                   >
                     {/* Jersey overlay */}
                     <div
-                      className="absolute inset-x-1 top-1 bottom-2 rounded-sm border border-white/30"
+                      className="absolute inset-x-0.5 top-0.5 bottom-1 rounded border-2"
                       style={{
                         background: player.team === 'offense'
-                          ? 'linear-gradient(to bottom, rgba(37, 99, 235, 0.4) 0%, rgba(29, 78, 216, 0.6) 50%, rgba(30, 58, 138, 0.8) 100%)'
-                          : 'linear-gradient(to bottom, rgba(220, 38, 38, 0.4) 0%, rgba(185, 28, 28, 0.6) 50%, rgba(153, 27, 27, 0.8) 100%)',
-                        boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.2), inset 0 -1px 2px rgba(0,0,0,0.3)'
+                          ? 'linear-gradient(to bottom, rgba(59, 130, 246, 0.9) 0%, rgba(37, 99, 235, 0.95) 50%, rgba(29, 78, 216, 1) 100%)'
+                          : 'linear-gradient(to bottom, rgba(239, 68, 68, 0.9) 0%, rgba(220, 38, 38, 0.95) 50%, rgba(185, 28, 28, 1) 100%)',
+                        borderColor: player.team === 'offense' ? 'rgba(147, 197, 253, 0.6)' : 'rgba(252, 165, 165, 0.6)',
+                        boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3)'
                       }}
                     >
                       {/* V-neck */}
                       <div
-                        className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-1.5 border-l border-r border-white/20"
+                        className="absolute top-0 left-1/2 -translate-x-1/2 w-3 h-2 border-l-2 border-r-2 border-white/40"
                         style={{
                           clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)'
                         }}
                       />
 
-                      {/* Jersey number/role */}
-                      <div className="absolute inset-0 flex items-center justify-center text-[7px] font-black text-white drop-shadow-lg" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9), 0 0 8px rgba(255,255,255,0.3)' }}>
+                      {/* Jersey number/role - prominent */}
+                      <div
+                        className="absolute inset-0 flex items-center justify-center text-[8px] font-black text-white"
+                        style={{
+                          textShadow: '0 0 4px rgba(0,0,0,1), 0 0 8px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,1), 0 0 12px rgba(255,255,255,0.4)',
+                          WebkitTextStroke: '0.5px rgba(0,0,0,0.5)'
+                        }}
+                      >
                         {player.role}
                       </div>
 
-                      {/* Side stripes */}
-                      <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-white/20"></div>
-                      <div className="absolute right-0 top-0 bottom-0 w-0.5 bg-white/20"></div>
+                      {/* Side stripes - more prominent */}
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-r from-white/40 to-transparent"></div>
+                      <div className="absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-l from-white/40 to-transparent"></div>
+
+                      {/* Horizontal stripe */}
+                      <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-0.5 bg-white/20"></div>
                     </div>
 
                     {/* Rim lighting on right edge */}
@@ -351,31 +377,43 @@ const Board: React.FC<BoardProps> = ({
                     />
                   </div>
 
-                  {/* Arms */}
-                  <div className="absolute top-5 left-0 right-0 flex justify-between px-0.5">
+                  {/* Arms - positioned lower and more to the sides */}
+                  <div className="absolute top-6 left-0 right-0 flex justify-between" style={{ paddingLeft: '-2px', paddingRight: '-2px' }}>
                     {/* Left arm */}
                     <div
-                      className={`w-1.5 h-4 rounded-full ${isActive ? 'ring-1 ring-yellow-400' : ''} ${player.team === 'offense' ? 'bg-blue-600' : 'bg-red-600'}`}
+                      className={`w-1.5 h-5 rounded-full ${
+                        isActive ? 'ring-1 ring-yellow-400' : isSuggestedMover ? 'ring-1 ring-white' : isPassTarget ? 'ring-1 ring-emerald-400' : ''
+                      } ${player.team === 'offense' ? 'bg-blue-600' : 'bg-red-600'}`}
                       style={{
-                        transform: 'rotate(-15deg)',
+                        transform: 'rotate(-25deg) translateX(-2px)',
                         background: player.team === 'offense'
                           ? 'linear-gradient(to bottom, #2563eb, #1e3a8a)'
                           : 'linear-gradient(to bottom, #dc2626, #7f1d1d)',
                         boxShadow: isActive
                           ? '0 0 8px rgba(250, 204, 21, 0.8), inset -1px 0 2px rgba(0,0,0,0.4)'
+                          : isSuggestedMover
+                          ? '0 0 8px rgba(255, 255, 255, 0.8), inset -1px 0 2px rgba(0,0,0,0.4)'
+                          : isPassTarget
+                          ? '0 0 8px rgba(52, 211, 153, 0.8), inset -1px 0 2px rgba(0,0,0,0.4)'
                           : 'inset -1px 0 2px rgba(0,0,0,0.4)'
                       }}
                     />
                     {/* Right arm */}
                     <div
-                      className={`w-1.5 h-4 rounded-full ${isActive ? 'ring-1 ring-yellow-400' : ''} ${player.team === 'offense' ? 'bg-blue-600' : 'bg-red-600'}`}
+                      className={`w-1.5 h-5 rounded-full ${
+                        isActive ? 'ring-1 ring-yellow-400' : isSuggestedMover ? 'ring-1 ring-white' : isPassTarget ? 'ring-1 ring-emerald-400' : ''
+                      } ${player.team === 'offense' ? 'bg-blue-600' : 'bg-red-600'}`}
                       style={{
-                        transform: 'rotate(15deg)',
+                        transform: 'rotate(25deg) translateX(2px)',
                         background: player.team === 'offense'
                           ? 'linear-gradient(to bottom, #2563eb, #1e3a8a)'
                           : 'linear-gradient(to bottom, #dc2626, #7f1d1d)',
                         boxShadow: isActive
                           ? '0 0 8px rgba(250, 204, 21, 0.8), inset 1px 0 2px rgba(255,255,255,0.2)'
+                          : isSuggestedMover
+                          ? '0 0 8px rgba(255, 255, 255, 0.8), inset 1px 0 2px rgba(255,255,255,0.2)'
+                          : isPassTarget
+                          ? '0 0 8px rgba(52, 211, 153, 0.8), inset 1px 0 2px rgba(255,255,255,0.2)'
                           : 'inset 1px 0 2px rgba(255,255,255,0.2)'
                       }}
                     />
@@ -384,39 +422,44 @@ const Board: React.FC<BoardProps> = ({
                   {/* Legs */}
                   <div className="flex gap-0.5 -mt-0.5">
                     <div
-                      className={`w-2 h-4 rounded-b-lg ${isActive ? 'ring-1 ring-yellow-400' : ''}`}
+                      className={`w-2 h-4 rounded-b-lg ${
+                        isActive ? 'ring-1 ring-yellow-400' : isSuggestedMover ? 'ring-1 ring-white' : isPassTarget ? 'ring-1 ring-emerald-400' : ''
+                      }`}
                       style={{
                         background: player.team === 'offense'
                           ? 'linear-gradient(to bottom, #1e40af 0%, #1e3a8a 50%, #172554 100%)'
                           : 'linear-gradient(to bottom, #b91c1c 0%, #991b1b 50%, #7f1d1d 100%)',
                         boxShadow: isActive
                           ? '0 0 8px rgba(250, 204, 21, 0.8), inset -1px -1px 3px rgba(0,0,0,0.5), inset 1px 1px 2px rgba(255,255,255,0.1)'
+                          : isSuggestedMover
+                          ? '0 0 8px rgba(255, 255, 255, 0.8), inset -1px -1px 3px rgba(0,0,0,0.5), inset 1px 1px 2px rgba(255,255,255,0.1)'
+                          : isPassTarget
+                          ? '0 0 8px rgba(52, 211, 153, 0.8), inset -1px -1px 3px rgba(0,0,0,0.5), inset 1px 1px 2px rgba(255,255,255,0.1)'
                           : 'inset -1px -1px 3px rgba(0,0,0,0.5), inset 1px 1px 2px rgba(255,255,255,0.1)'
                       }}
                     />
                     <div
-                      className={`w-2 h-4 rounded-b-lg ${isActive ? 'ring-1 ring-yellow-400' : ''}`}
+                      className={`w-2 h-4 rounded-b-lg ${
+                        isActive ? 'ring-1 ring-yellow-400' : isSuggestedMover ? 'ring-1 ring-white' : isPassTarget ? 'ring-1 ring-emerald-400' : ''
+                      }`}
                       style={{
                         background: player.team === 'offense'
                           ? 'linear-gradient(to bottom, #1e40af 0%, #1e3a8a 50%, #172554 100%)'
                           : 'linear-gradient(to bottom, #b91c1c 0%, #991b1b 50%, #7f1d1d 100%)',
                         boxShadow: isActive
                           ? '0 0 8px rgba(250, 204, 21, 0.8), inset 1px -1px 3px rgba(0,0,0,0.5), inset -1px 1px 2px rgba(255,255,255,0.15)'
+                          : isSuggestedMover
+                          ? '0 0 8px rgba(255, 255, 255, 0.8), inset 1px -1px 3px rgba(0,0,0,0.5), inset -1px 1px 2px rgba(255,255,255,0.15)'
+                          : isPassTarget
+                          ? '0 0 8px rgba(52, 211, 153, 0.8), inset 1px -1px 3px rgba(0,0,0,0.5), inset -1px 1px 2px rgba(255,255,255,0.15)'
                           : 'inset 1px -1px 3px rgba(0,0,0,0.5), inset -1px 1px 2px rgba(255,255,255,0.15)'
                       }}
                     />
                   </div>
                 </div>
 
-                {/* Pass target ring */}
-                {isPassTarget && (
-                  <div className="absolute inset-0 rounded-full border-4 border-emerald-400 animate-pulse shadow-[0_0_20px_rgba(52,211,153,0.8)]" style={{ width: '130%', height: '130%', left: '-15%', top: '-15%' }} />
-                )}
-
-                {/* Suggested mover ring */}
-                {isSuggestedMover && !isActive && (
-                  <div className="absolute inset-0 rounded-full border-4 border-white animate-pulse shadow-[0_0_25px_rgba(255,255,255,0.8)]" style={{ width: '130%', height: '130%', left: '-15%', top: '-15%' }} />
-                )}
+                {/* Pass target - emerald glow on body parts */}
+                {/* Suggested mover - handled by body part borders below */}
 
                 {/* Screened indicator - positioned on lower body */}
                 {isScreened && (
@@ -443,9 +486,9 @@ const Board: React.FC<BoardProps> = ({
                   ${player.hasBall ? 'ring-2 ring-orange-300 scale-105 shadow-[0_0_15px_rgba(253,224,71,0.6)]' : ''}
                   ${hasMoved && player.team === 'offense' ? 'opacity-40' : 'opacity-100'}
                   ${isScreened ? 'ring-2 ring-white scale-95 shadow-[0_0_10px_rgba(255,255,255,0.4)]' : ''}
+                  ${isActive ? 'ring-4 ring-yellow-400 ring-inset animate-pulse shadow-[0_0_20px_rgba(250,204,21,0.8)]' : ''}
                   ${isSuggestedMover && !isActive ? 'ring-4 ring-white animate-pulse shadow-[0_0_20px_rgba(255,255,255,0.6)]' : ''}
-                  ${isPassTarget ? 'ring-4 ring-emerald-400 animate-pulse shadow-[0_0_15px_rgba(52,211,153,0.8)]' : ''}
-                  ${isActive ? 'ring-4 ring-yellow-400 ring-inset' : ''}
+                  ${isPassTarget ? 'ring-4 ring-emerald-400 animate-pulse shadow-[0_0_20px_rgba(52,211,153,0.8)]' : ''}
                   transition-all duration-300
                 `}
               >
@@ -515,8 +558,21 @@ const Board: React.FC<BoardProps> = ({
     <div className={`flex flex-col w-full max-w-[470px] mx-auto ${is3DMode ? 'gap-0' : 'gap-1'}`} style={is3DMode ? { perspective: '1200px' } : {}}>
       {/* Info displays above court in 3D mode */}
       {is3DMode && (
-        <div className="relative z-30 mb-[-10px]">
+        <div className="relative z-30 mb-[-25px]">
           {renderInfoDisplays3D()}
+        </div>
+      )}
+
+      {/* X-axis labels at top in 3D mode */}
+      {is3DMode && (
+        <div className="flex w-full pl-5 relative z-30 mb-[-10px]">
+          <div className="flex-1 grid grid-cols-9 h-4">
+            {Array.from({ length: 9 }).map((_, i) => (
+              <div key={`x-top-${i}`} className={axisLabelStyle}>
+                {i + 1}
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -540,16 +596,18 @@ const Board: React.FC<BoardProps> = ({
         </div>
       </div>
 
-      {/* X-axis labels */}
-      <div className={`flex w-full pl-5 ${is3DMode ? 'relative z-30 mt-[-15px]' : ''}`}>
-        <div className="flex-1 grid grid-cols-9 h-4">
-          {Array.from({ length: 9 }).map((_, i) => (
-            <div key={`x-${i}`} className={axisLabelStyle}>
-              {i + 1}
-            </div>
-          ))}
+      {/* X-axis labels at bottom (hidden in 3D mode) */}
+      {!is3DMode && (
+        <div className="flex w-full pl-5">
+          <div className="flex-1 grid grid-cols-9 h-4">
+            {Array.from({ length: 9 }).map((_, i) => (
+              <div key={`x-${i}`} className={axisLabelStyle}>
+                {i + 1}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
