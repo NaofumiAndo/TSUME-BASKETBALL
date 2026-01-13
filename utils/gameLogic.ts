@@ -231,9 +231,13 @@ export const aiOptimalWall = (players: Player[], streak: number = 0, mode: impor
     });
   }
 
-  // Priority 1 activates at streak 3+, Priority 2 activates at streak 5+
+  // Priority 1 activates at streak 3+, Priority 2 and 3 activate at streak 5+
   const usePriority1 = streak >= 3;
   const usePriority2 = streak >= 5;
+  const usePriority3 = streak >= 5;
+
+  // Track if Priority 2 has been used (only one defender should contest ball carrier on arc)
+  let priority2Used = false;
 
   defenders.forEach((defender) => {
     // Find offensive players that are screening this defender (orthogonally adjacent)
@@ -276,8 +280,37 @@ export const aiOptimalWall = (players: Player[], streak: number = 0, mode: impor
       }
     }
 
-    // PRIORITY 2 (Streak 5+): Block 3PT arc positions
-    if (usePriority2) {
+    // PRIORITY 2 (Streak 5+): Contest ball carrier on 3PT arc
+    if (usePriority2 && !priority2Used) {
+      // Check if ball carrier is on a 3-point arc position
+      const ballCarrierOnArc = isPartOfThreePointArc(ballCarrier.pos);
+
+      if (ballCarrierOnArc) {
+        // Check if this defender can move adjacent to the ball carrier's arc position
+        const canContestArc = moves.some(m =>
+          !isPosEqual(m, defender.pos) && // Not staying in place
+          isAdjacent(m, ballCarrier.pos) // Adjacent to ball carrier on arc
+        );
+
+        if (canContestArc) {
+          // Find the move that makes us adjacent to ball carrier
+          const contestMove = moves.find(m =>
+            !isPosEqual(m, defender.pos) &&
+            isAdjacent(m, ballCarrier.pos)
+          );
+
+          if (contestMove) {
+            targetPos = contestMove;
+            defender.pos = targetPos;
+            priority2Used = true; // Mark as used so other defenders skip this
+            return;
+          }
+        }
+      }
+    }
+
+    // PRIORITY 3 (Streak 5+): Block 3PT arc positions
+    if (usePriority3) {
       // Find arc positions that are:
       // 1. NOT occupied by any offense player
       // 2. NOT adjacent to any defense player
