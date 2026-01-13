@@ -33,7 +33,7 @@ const App: React.FC = () => {
   const timerRef = useRef<number | null>(null);
 
   // 2D/3D view mode
-  const [is3DMode, setIs3DMode] = useState(false);
+  const [is3DMode, setIs3DMode] = useState(true);
 
   // Banner state for scoring and game over
   const [showBanner, setShowBanner] = useState(false);
@@ -531,7 +531,7 @@ const App: React.FC = () => {
             className={`absolute right-0 top-0 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all border flex items-center gap-1.5 ${is3DMode ? 'bg-purple-600 border-purple-400 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}
           >
             <i className={`fa-solid ${is3DMode ? 'fa-cube' : 'fa-square'}`}></i>
-            {is3DMode ? '3D' : '2D'}
+            {is3DMode ? '→ 2D' : '→ 3D'}
           </button>
         )}
       </header>
