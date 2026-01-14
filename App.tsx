@@ -19,7 +19,7 @@ const App: React.FC = () => {
     movedPlayerIds: [],
     phase: 'menu',
     activeStrategy: null,
-    mode: 'streak-attack-lv1',
+    mode: 'streak-attack',
     timeLeft: 60,
     showNameInput: false
   });
@@ -47,8 +47,7 @@ const App: React.FC = () => {
         if (response.ok) {
           const data = await response.json();
           const allRankings = [
-            ...(data['streak-attack-lv1'] || []).map((r: any) => typeof r === 'string' ? JSON.parse(r) : r),
-            ...(data['streak-attack-lv2'] || []).map((r: any) => typeof r === 'string' ? JSON.parse(r) : r),
+            ...(data['streak-attack'] || []).map((r: any) => typeof r === 'string' ? JSON.parse(r) : r),
             ...(data['time-attack'] || []).map((r: any) => typeof r === 'string' ? JSON.parse(r) : r)
           ];
           setRankings(allRankings);
@@ -205,8 +204,7 @@ const App: React.FC = () => {
         if (rankingsResponse.ok) {
           const data = await rankingsResponse.json();
           const allRankings = [
-            ...(data['streak-attack-lv1'] || []).map((r: any) => typeof r === 'string' ? JSON.parse(r) : r),
-            ...(data['streak-attack-lv2'] || []).map((r: any) => typeof r === 'string' ? JSON.parse(r) : r),
+            ...(data['streak-attack'] || []).map((r: any) => typeof r === 'string' ? JSON.parse(r) : r),
             ...(data['time-attack'] || []).map((r: any) => typeof r === 'string' ? JSON.parse(r) : r)
           ];
           setRankings(allRankings);
@@ -458,8 +456,7 @@ const App: React.FC = () => {
     return moves;
   }, [gameState.activePlayerId, gameState.players]);
 
-  const streakLv1Rankings = rankings.filter(r => r.mode === 'streak-attack-lv1').sort((a, b) => b.score - a.score);
-  const streakLv2Rankings = rankings.filter(r => r.mode === 'streak-attack-lv2').sort((a, b) => b.score - a.score);
+  const streakRankings = rankings.filter(r => r.mode === 'streak-attack').sort((a, b) => b.score - a.score);
   const timeRankings = rankings.filter(r => r.mode === 'time-attack').sort((a, b) => b.score - a.score);
 
   const formatDate = (ts: number) => {
@@ -543,10 +540,9 @@ const App: React.FC = () => {
         {gameState.phase === 'menu' ? (
           <div className="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 shadow-2xl flex flex-col gap-4">
             <h2 className="text-sm font-black text-white uppercase tracking-widest text-center">Select Game Mode</h2>
-            <button onClick={() => startGame('streak-attack-lv1')} className="bg-orange-600 hover:bg-orange-500 text-white font-black py-4 rounded-2xl uppercase text-xs tracking-widest transition-all shadow-[0_4px_15px_rgba(234,88,12,0.3)]">Score Attack (Streak): Level 1</button>
-            <button onClick={() => startGame('streak-attack-lv2')} className="bg-red-600 hover:bg-red-500 text-white font-black py-4 rounded-2xl uppercase text-xs tracking-widest transition-all shadow-[0_4px_15px_rgba(220,38,38,0.3)]">Score Attack (Streak): Level 2</button>
+            <button onClick={() => startGame('streak-attack')} className="bg-orange-600 hover:bg-orange-500 text-white font-black py-4 rounded-2xl uppercase text-xs tracking-widest transition-all shadow-[0_4px_15px_rgba(234,88,12,0.3)]">Score Attack (Streak)</button>
             <button onClick={() => startGame('time-attack')} className="bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-2xl uppercase text-xs tracking-widest transition-all shadow-[0_4px_15px_rgba(37,99,235,0.3)]">Time Attack (1 Min)</button>
-            <p className="text-[9px] text-zinc-500 text-center leading-relaxed font-bold">Streak Level 1: Screens freeze defenders completely.<br/>Streak Level 2: Screens block adjacent moves only.<br/>Time Attack: Score as many as possible within 60s.</p>
+            <p className="text-[9px] text-zinc-500 text-center leading-relaxed font-bold">Streak mode: One miss ends the game.<br/>Time Attack: Score as many as possible within 60s.</p>
           </div>
         ) : (
           <>
@@ -771,7 +767,7 @@ const App: React.FC = () => {
                     <li><span className="text-white">Slam Dunk:</span> Move ball-carrier <span className="text-orange-400">INTO THE BASKET</span> to instantly score 2PT!</li>
                     <li><span className="text-white">Layup (2PT):</span> ONLY from <span className="text-orange-400">LIGHT ORANGE BLOCKS</span> on the court + rim area must be <span className="text-red-500">EMPTY</span> of defenders.</li>
                   </ul>
-                  <p className="mt-2"><span className="text-white">How to Screen:</span> To create space, place an <span className="text-white">off-ball support player</span> directly next to a defender (horizontally or vertically). Screened defenders are <span className="text-white">FROZEN</span> and cannot move for one turn.</p>
+                  <p className="mt-2"><span className="text-white">How to Screen:</span> Place an <span className="text-white">off-ball support player</span> directly next to a defender (horizontally or vertically). Screened defenders <span className="text-orange-400">cannot move into blocks adjacent</span> to the screening player, limiting their defensive options significantly.</p>
                   <p className="mt-2"><span className="text-white">Undo Limit:</span> You can only undo <span className="text-orange-400">ONE action per turn</span>. Button shows "(Used)" after use.</p>
                 </div>
               </section>
@@ -794,8 +790,7 @@ const App: React.FC = () => {
             <i className="fa-solid fa-ranking-star text-yellow-500"></i> Hall of Fame
           </h2>
           <div className="flex flex-col gap-4 overflow-x-hidden">
-             <RankingTable title="Score Attack (Streak): Level 1" data={streakLv1Rankings} icon="fa-fire" />
-             <RankingTable title="Score Attack (Streak): Level 2" data={streakLv2Rankings} icon="fa-fire-flame-curved" />
+             <RankingTable title="Score Attack (Streak)" data={streakRankings} icon="fa-fire" />
              <RankingTable title="Time Attack (1 Min)" data={timeRankings} icon="fa-bolt" />
           </div>
         </div>

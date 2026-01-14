@@ -194,59 +194,65 @@ export const generateTacticalScenario = (): Player[] => {
   return players;
 };
 
-export const aiOptimalWall = (players: Player[], streak: number = 0, mode: import('../types').GameMode = 'streak-attack-lv1'): Player[] => {
+export const aiOptimalWall = (players: Player[], streak: number = 0, mode: import('../types').GameMode = 'streak-attack'): Player[] => {
   const nextPlayers = players.map(p => ({ ...p }));
   const defenders = nextPlayers.filter(p => p.team === 'defense');
   const offense = nextPlayers.filter(p => p.team === 'offense');
   const ballCarrier = offense.find(p => p.hasBall)!;
 
-  // Streak 10+: Reassign defenders to closest offensive players for tighter defense
-  if (streak >= 10) {
-    const availableOffense = [...offense];
-    const assignments: { defender: Player; offense: Player }[] = [];
+  // Proximity-based assignment: Reassign defenders to closest offensive players for tighter defense
+  const availableOffense = [...offense];
+  const assignments: { defender: Player; offense: Player }[] = [];
 
-    // For each defender, find their closest offensive player
-    defenders.forEach(defender => {
-      let closestOffense = availableOffense[0];
-      let closestDist = getDistance(defender.pos, closestOffense.pos);
+  // For each defender, find their closest offensive player
+  defenders.forEach(defender => {
+    let closestOffense = availableOffense[0];
+    let closestDist = getDistance(defender.pos, closestOffense.pos);
 
-      for (const off of availableOffense) {
-        const dist = getDistance(defender.pos, off.pos);
-        if (dist < closestDist) {
-          closestDist = dist;
-          closestOffense = off;
-        }
+    for (const off of availableOffense) {
+      const dist = getDistance(defender.pos, off.pos);
+      if (dist < closestDist) {
+        closestDist = dist;
+        closestOffense = off;
       }
+    }
 
-      assignments.push({ defender, offense: closestOffense });
-      // Remove assigned offense from available pool
-      const index = availableOffense.indexOf(closestOffense);
-      if (index > -1) availableOffense.splice(index, 1);
-    });
+    assignments.push({ defender, offense: closestOffense });
+    // Remove assigned offense from available pool
+    const index = availableOffense.indexOf(closestOffense);
+    if (index > -1) availableOffense.splice(index, 1);
+  });
 
-    // Apply the proximity-based assignments
-    assignments.forEach(({ defender, offense }) => {
-      defender.assignedTo = offense.id;
-      defender.role = offense.role;
-    });
-  }
+  // Apply the proximity-based assignments
+  assignments.forEach(({ defender, offense }) => {
+    defender.assignedTo = offense.id;
+    defender.role = offense.role;
+  });
 
-  // Priority 1 activates at streak 3+, Priority 2 and 3 activate at streak 5+
-  const usePriority1 = streak >= 3;
-  const usePriority2 = streak >= 5;
-  const usePriority3 = streak >= 5;
+  // Priority activation thresholds
+  const usePriority1 = streak >= 4;  // Contest ball carrier on arc
+  const usePriority2 = streak >= 4;  // Stay if contesting arc
+  const usePriority4 = streak >= 7;  // Block basket
+  const usePriority5 = streak >= 10; // Block unoccupied arcs
 
-  // Track if Priority 2 has been used (only one defender should contest ball carrier on arc)
-  let priority2Used = false;
+  // Track which defender is contesting ball carrier on arc (Priority 1)
+  let priority1DefenderId: string | null = null;
+
+  // Track which arc positions are being targeted (Priority 5)
+  const targetedArcPositions = new Set<string>();
+
+  // Helper function to check if position is between two points
+  const isBetween = (pos: Position, point1: Position, point2: Position): boolean => {
+    const minX = Math.min(point1.x, point2.x);
+    const maxX = Math.max(point1.x, point2.x);
+    const minY = Math.min(point1.y, point2.y);
+    const maxY = Math.max(point1.y, point2.y);
+    return pos.x >= minX && pos.x <= maxX && pos.y >= minY && pos.y <= maxY;
+  };
 
   defenders.forEach((defender) => {
     // Find offensive players that are screening this defender (orthogonally adjacent)
     const screeningPlayers = offense.filter(o => isOrthogonalAdjacent(o.pos, defender.pos));
-
-    // Level 1: Screened defenders lose their ability to move completely
-    if (mode === 'streak-attack-lv1' && screeningPlayers.length > 0) {
-      return;
-    }
 
     // Defenders only move one block (including diagonals) from their previous turn position.
     const moves: Position[] = [defender.pos];
@@ -256,8 +262,8 @@ export const aiOptimalWall = (players: Player[], streak: number = 0, mode: impor
         const p = { x: defender.pos.x + x, y: defender.pos.y + y };
         // Block row 1 (y=0) and check bounds
         if (p.x >= 0 && p.x < GRID_SIZE && p.y > 0 && p.y < GRID_SIZE && !nextPlayers.find(pl => pl.id !== defender.id && isPosEqual(pl.pos, p))) {
-          // Level 2: Defenders cannot move into blocks adjacent to screening offensive players
-          if (mode === 'streak-attack-lv2' && screeningPlayers.length > 0) {
+          // Screening: Defenders cannot move into blocks adjacent to screening offensive players
+          if (mode === 'streak-attack' && screeningPlayers.length > 0) {
             const blockedByScreen = screeningPlayers.some(screener => isAdjacent(p, screener.pos));
             if (blockedByScreen) {
               continue; // Skip this move
@@ -269,96 +275,158 @@ export const aiOptimalWall = (players: Player[], streak: number = 0, mode: impor
     }
 
     let targetPos = defender.pos;
+    let priorityExecuted = false;
 
-    // PRIORITY 1 (Streak 3+): Block basket if ball carrier is close (within 4 squares)
-    if (usePriority1) {
-      const distToBasket = getDistance(ballCarrier.pos, BASKET_POS);
-      if (distToBasket <= 4 && moves.some(m => isPosEqual(m, BASKET_POS))) {
-        targetPos = BASKET_POS;
-        defender.pos = targetPos;
-        return;
-      }
-    }
-
-    // PRIORITY 2 (Streak 5+): Contest ball carrier on 3PT arc
-    if (usePriority2 && !priority2Used) {
-      // Check if ball carrier is on a 3-point arc position
+    // PRIORITY 1 (Streak 4+): Contest ball carrier on 3PT arc
+    if (usePriority1 && !priorityExecuted && !priority1DefenderId) {
       const ballCarrierOnArc = isPartOfThreePointArc(ballCarrier.pos);
 
       if (ballCarrierOnArc) {
-        // Check if this defender can move adjacent to the ball carrier's arc position
-        const canContestArc = moves.some(m =>
-          !isPosEqual(m, defender.pos) && // Not staying in place
-          isAdjacent(m, ballCarrier.pos) // Adjacent to ball carrier on arc
+        // Check if ball carrier already has an adjacent defender
+        const alreadyContested = defenders.some(d =>
+          d.id !== defender.id && isAdjacent(d.pos, ballCarrier.pos)
         );
 
-        if (canContestArc) {
-          // Find the move that makes us adjacent to ball carrier
-          const contestMove = moves.find(m =>
-            !isPosEqual(m, defender.pos) &&
-            isAdjacent(m, ballCarrier.pos)
+        if (!alreadyContested) {
+          // Find if this defender can move adjacent to ball carrier
+          const contestMoves = moves.filter(m =>
+            !isPosEqual(m, defender.pos) && isAdjacent(m, ballCarrier.pos)
           );
 
-          if (contestMove) {
-            targetPos = contestMove;
-            defender.pos = targetPos;
-            priority2Used = true; // Mark as used so other defenders skip this
-            return;
+          if (contestMoves.length > 0) {
+            // Check if this is the closest defender to ball carrier
+            const distToBallCarrier = getDistance(defender.pos, ballCarrier.pos);
+            const isClosest = !defenders.some(d =>
+              d.id !== defender.id &&
+              getDistance(d.pos, ballCarrier.pos) < distToBallCarrier
+            );
+
+            if (isClosest) {
+              targetPos = contestMoves[0];
+              defender.pos = targetPos;
+              priority1DefenderId = defender.id;
+              priorityExecuted = true;
+            }
           }
         }
       }
     }
 
-    // PRIORITY 3 (Streak 5+): Block 3PT arc positions
-    if (usePriority3) {
-      // Find arc positions that are:
-      // 1. NOT occupied by any offense player
-      // 2. NOT adjacent to any defense player
-      const validArcPositions = THREE_POINT_LINE.filter(arcPos => {
-        // Check not occupied by offense
-        const occupiedByOffense = offense.some(o => isPosEqual(o.pos, arcPos));
-        if (occupiedByOffense) return false;
+    // PRIORITY 2 (Streak 4+): Stay if contesting offensive player on arc
+    if (usePriority2 && !priorityExecuted) {
+      // Check if any adjacent offensive player is on the arc
+      const contestingArcPlayer = offense.some(o =>
+        isAdjacent(defender.pos, o.pos) && isPartOfThreePointArc(o.pos)
+      );
 
-        // Check not adjacent to any defender
-        const adjacentToDefender = defenders.some(d => isAdjacent(d.pos, arcPos));
-        if (adjacentToDefender) return false;
+      if (contestingArcPlayer) {
+        targetPos = defender.pos; // Stay in place
+        defender.pos = targetPos;
+        priorityExecuted = true;
+      }
+    }
 
-        return true;
+    // PRIORITY 4 (Streak 7+): Block basket if ball carrier is adjacent to goal
+    if (usePriority4 && !priorityExecuted) {
+      const ballCarrierAdjacentToBasket = isAdjacent(ballCarrier.pos, BASKET_POS);
+
+      if (ballCarrierAdjacentToBasket && moves.some(m => isPosEqual(m, BASKET_POS))) {
+        targetPos = BASKET_POS;
+        defender.pos = targetPos;
+        priorityExecuted = true;
+      }
+    }
+
+    // PRIORITY 5 (Streak 10+): Block unoccupied 3PT arc positions
+    if (usePriority5 && !priorityExecuted) {
+      // Find unoccupied arc positions
+      const unoccupiedArcs = THREE_POINT_LINE.filter(arcPos => {
+        const occupied = offense.some(o => isPosEqual(o.pos, arcPos));
+        const targeted = targetedArcPositions.has(`${arcPos.x},${arcPos.y}`);
+        return !occupied && !targeted;
       });
 
-      // Find moves that would place this defender adjacent to valid arc positions
-      const movesAdjacentToArc: Position[] = [];
+      // Find moves adjacent to unoccupied arcs
+      const arcDefenseMoves: { move: Position; arcPos: Position }[] = [];
       for (const move of moves) {
-        if (isPosEqual(move, defender.pos)) continue; // Skip staying in place
-        for (const arcPos of validArcPositions) {
+        if (isPosEqual(move, defender.pos)) continue;
+        for (const arcPos of unoccupiedArcs) {
           if (isAdjacent(move, arcPos)) {
-            movesAdjacentToArc.push(move);
-            break; // Only add this move once even if adjacent to multiple arcs
+            arcDefenseMoves.push({ move, arcPos });
           }
         }
       }
 
-      // If we have valid moves adjacent to arc, randomly pick one
-      if (movesAdjacentToArc.length > 0) {
-        const randomIndex = Math.floor(Math.random() * movesAdjacentToArc.length);
-        targetPos = movesAdjacentToArc[randomIndex];
+      if (arcDefenseMoves.length > 0) {
+        // Pick first available
+        const chosen = arcDefenseMoves[0];
+        targetPos = chosen.move;
         defender.pos = targetPos;
-        return;
+        targetedArcPositions.add(`${chosen.arcPos.x},${chosen.arcPos.y}`);
+        priorityExecuted = true;
       }
     }
 
-    // Standard defensive positioning (used for streak 1-2, or as fallback)
-    const assigned = offense.find(o => o.id === defender.assignedTo);
-    if (defender.assignedTo === ballCarrier.id) {
-      const ideal = { x: Math.round((ballCarrier.pos.x + BASKET_POS.x) / 2), y: Math.round((ballCarrier.pos.y + BASKET_POS.y) / 2) };
-      moves.sort((a, b) => getDistance(a, ideal) - getDistance(b, ideal));
-      targetPos = moves[0];
-    } else if (assigned) {
-      const mid = { x: Math.round((ballCarrier.pos.x + assigned.pos.x) / 2), y: Math.round((ballCarrier.pos.y + assigned.pos.y) / 2) };
-      moves.sort((a, b) => getDistance(a, mid) - getDistance(b, mid));
-      targetPos = moves[0];
+    // STANDARD DEFENSE: Fallback positioning
+    if (!priorityExecuted) {
+      const assigned = offense.find(o => o.id === defender.assignedTo);
+
+      if (defender.assignedTo === ballCarrier.id) {
+        // Ball Carrier's Defender: Move to nearest point between ball carrier and basket
+        const betweenMoves = moves.filter(m => isBetween(m, ballCarrier.pos, BASKET_POS));
+
+        if (betweenMoves.length > 0) {
+          // If already between, move closer to ball carrier
+          const currentlyBetween = isBetween(defender.pos, ballCarrier.pos, BASKET_POS);
+          if (currentlyBetween) {
+            betweenMoves.sort((a, b) => getDistance(a, ballCarrier.pos) - getDistance(b, ballCarrier.pos));
+          } else {
+            // Not between yet, get to nearest between position, prefer closer to ball carrier
+            betweenMoves.sort((a, b) => {
+              const distA = getDistance(a, defender.pos);
+              const distB = getDistance(b, defender.pos);
+              if (distA === distB) {
+                return getDistance(a, ballCarrier.pos) - getDistance(b, ballCarrier.pos);
+              }
+              return distA - distB;
+            });
+          }
+          targetPos = betweenMoves[0];
+        } else {
+          // Can't get between, move closer to ball carrier
+          moves.sort((a, b) => getDistance(a, ballCarrier.pos) - getDistance(b, ballCarrier.pos));
+          targetPos = moves[0];
+        }
+      } else if (assigned) {
+        // Other Defenders: Move to nearest point between ball carrier and assigned player
+        const betweenMoves = moves.filter(m => isBetween(m, ballCarrier.pos, assigned.pos));
+
+        if (betweenMoves.length > 0) {
+          const currentlyBetween = isBetween(defender.pos, ballCarrier.pos, assigned.pos);
+          if (currentlyBetween) {
+            // Already between, move closer to assigned player
+            betweenMoves.sort((a, b) => getDistance(a, assigned.pos) - getDistance(b, assigned.pos));
+          } else {
+            // Not between yet, get to nearest between position, prefer closer to ball carrier
+            betweenMoves.sort((a, b) => {
+              const distA = getDistance(a, defender.pos);
+              const distB = getDistance(b, defender.pos);
+              if (distA === distB) {
+                return getDistance(a, ballCarrier.pos) - getDistance(b, ballCarrier.pos);
+              }
+              return distA - distB;
+            });
+          }
+          targetPos = betweenMoves[0];
+        } else {
+          // Can't get between, move closer to assigned player
+          moves.sort((a, b) => getDistance(a, assigned.pos) - getDistance(b, assigned.pos));
+          targetPos = moves[0];
+        }
+      }
+
+      defender.pos = targetPos;
     }
-    defender.pos = targetPos;
   });
 
   return nextPlayers;
