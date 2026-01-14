@@ -348,6 +348,31 @@ const App: React.FC = () => {
       const ballCarrier = gameState.players.find(p => p.hasBall)!;
       if (clickedPlayer && clickedPlayer.team === 'offense' && clickedPlayer.id !== ballCarrier.id) {
         if (canPassToTeammate(ballCarrier, clickedPlayer, gameState.players)) {
+          // Check if pass target is on the basket position - ALLEY-OOP!
+          if (isPosEqual(clickedPlayer.pos, BASKET_POS)) {
+            const newScore = gameState.score + 2;
+            const newStreak = gameState.streak + 1;
+            const newHigh = Math.max(newScore, gameState.highScore);
+            localStorage.setItem('tsume_high_score', newHigh.toString());
+
+            // Show alley-oop banner
+            setBannerContent({ points: 2, type: 'ALLEY-OOP', message: '' });
+            setShowBanner(true);
+
+            const nextPlayers = gameState.players.map(p => {
+              if (p.id === ballCarrier.id) return { ...p, hasBall: false };
+              if (p.id === clickedPlayer.id) return { ...p, hasBall: true };
+              return p;
+            });
+
+            setGameState(prev => ({ ...prev, players: nextPlayers, score: newScore, streak: newStreak, highScore: newHigh, message: `ALLEY-OOP! +2. Spectacular finish!` }));
+            setTimeout(() => {
+              setShowBanner(false);
+              startNextPossession(newScore, newStreak);
+            }, 1200);
+            return;
+          }
+
           const nextPlayers = gameState.players.map(p => {
             if (p.id === ballCarrier.id) return { ...p, hasBall: false };
             if (p.id === clickedPlayer.id) return { ...p, hasBall: true };
@@ -775,12 +800,15 @@ const App: React.FC = () => {
               <section>
                 <h3 className="text-[9px] font-black text-red-400 uppercase tracking-widest mb-1.5 border-b border-zinc-800 pb-0.5">Defensive Strategy (AI)</h3>
                 <div className="space-y-2 text-[9px] font-bold text-zinc-400 leading-relaxed uppercase">
-                   <p><span className="text-white">Blocking shots:</span> Defenders block you automatically by staying <span className="text-white">ADJACENT</span> to you. Move to space and force them to react.</p>
+                   <p><span className="text-white">Adaptive Defense:</span> The AI defense <span className="text-orange-400">evolves as your streak grows</span>. Early streaks face standard defense, but higher streaks unlock <span className="text-white">advanced tactics</span>.</p>
                    <ul className="list-disc pl-4 space-y-1">
-                    <li><span className="text-white">Positioning:</span> AI prioritizes staying between the ball-carrier and the rim.</li>
-                    <li><span className="text-white">Rim Protection:</span> Defenders will rotate to the basket if you get too close.</li>
-                    <li><span className="text-white">Denial:</span> They will step into pass lanes to prevent easy assists.</li>
+                    <li><span className="text-white">Man-to-Man:</span> Defenders intelligently switch assignments to stay close to threats.</li>
+                    <li><span className="text-white">Help Defense:</span> They position between the ball and their assignments to provide help.</li>
+                    <li><span className="text-white">Arc Awareness:</span> At higher streaks, defenders become aggressive at contesting 3-point attempts.</li>
+                    <li><span className="text-white">Rim Protection:</span> As difficulty increases, defenders prioritize protecting the paint and basket area.</li>
+                    <li><span className="text-white">Contest Priority:</span> Advanced defense will maintain position on shooters rather than chasing the ball.</li>
                   </ul>
+                   <p className="mt-2"><span className="text-white">Strategy Tip:</span> Use <span className="text-orange-400">off-ball movement and screens</span> to create space. The defense adapts, so you must too!</p>
                 </div>
               </section>
             </div>

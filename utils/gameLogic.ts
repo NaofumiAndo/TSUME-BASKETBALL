@@ -230,16 +230,26 @@ export const aiOptimalWall = (players: Player[], streak: number = 0, mode: impor
   });
 
   // Priority activation thresholds
-  const usePriority1 = streak >= 4;  // Contest ball carrier on arc
-  const usePriority2 = streak >= 4;  // Stay if contesting arc
-  const usePriority4 = streak >= 7;  // Block basket
-  const usePriority5 = streak >= 10; // Block unoccupied arcs
+  const usePriority1 = streak >= 4;    // Contest ball carrier on arc
+  const usePriority1_5 = streak >= 4;  // Contest ball carrier in layup zone
+  const usePriority2 = streak >= 4;    // Stay if contesting arc
+  const usePriority3 = streak >= 4;    // Stay if in rim area contesting layup zone
+  const usePriority4 = streak >= 7;    // Block basket
+  const usePriority5 = streak >= 10;   // Block unoccupied arcs
 
   // Track which defender is contesting ball carrier on arc (Priority 1)
   let priority1DefenderId: string | null = null;
 
+  // Track which defender is moving to rim area (Priority 1.5)
+  let priority1_5DefenderId: string | null = null;
+
   // Track which arc positions are being targeted (Priority 5)
   const targetedArcPositions = new Set<string>();
+
+  // Helper function to check if position is in rim area (basket or adjacent to basket)
+  const isInRimArea = (pos: Position): boolean => {
+    return isPosEqual(pos, BASKET_POS) || isAdjacent(pos, BASKET_POS);
+  };
 
   // Helper function to check if position is between two points
   const isBetween = (pos: Position, point1: Position, point2: Position): boolean => {
@@ -312,6 +322,39 @@ export const aiOptimalWall = (players: Player[], streak: number = 0, mode: impor
       }
     }
 
+    // PRIORITY 1.5 (Streak 4+): Contest ball carrier in layup zone
+    if (usePriority1_5 && !priorityExecuted && !priority1_5DefenderId) {
+      const ballCarrierInLayupZone = isLayupPosition(ballCarrier.pos);
+
+      if (ballCarrierInLayupZone) {
+        // Check if there's already a defender in the rim area
+        const rimAreaDefended = defenders.some(d =>
+          d.id !== defender.id && isInRimArea(d.pos)
+        );
+
+        if (!rimAreaDefended) {
+          // Find moves that would place this defender in the rim area
+          const rimAreaMoves = moves.filter(m => isInRimArea(m));
+
+          if (rimAreaMoves.length > 0) {
+            // Check if this is the closest defender to rim area
+            const distToBasket = getDistance(defender.pos, BASKET_POS);
+            const isClosest = !defenders.some(d =>
+              d.id !== defender.id &&
+              getDistance(d.pos, BASKET_POS) < distToBasket
+            );
+
+            if (isClosest) {
+              targetPos = rimAreaMoves[0];
+              defender.pos = targetPos;
+              priority1_5DefenderId = defender.id;
+              priorityExecuted = true;
+            }
+          }
+        }
+      }
+    }
+
     // PRIORITY 2 (Streak 4+): Stay if contesting offensive player on arc
     if (usePriority2 && !priorityExecuted) {
       // Check if any adjacent offensive player is on the arc
@@ -323,6 +366,24 @@ export const aiOptimalWall = (players: Player[], streak: number = 0, mode: impor
         targetPos = defender.pos; // Stay in place
         defender.pos = targetPos;
         priorityExecuted = true;
+      }
+    }
+
+    // PRIORITY 3 (Streak 4+): Stay if in rim area contesting layup zone player
+    if (usePriority3 && !priorityExecuted) {
+      const inRimArea = isInRimArea(defender.pos);
+
+      if (inRimArea) {
+        // Check if any adjacent offensive player is in layup zone
+        const contestingLayupPlayer = offense.some(o =>
+          isAdjacent(defender.pos, o.pos) && isLayupPosition(o.pos)
+        );
+
+        if (contestingLayupPlayer) {
+          targetPos = defender.pos; // Stay in place
+          defender.pos = targetPos;
+          priorityExecuted = true;
+        }
       }
     }
 
